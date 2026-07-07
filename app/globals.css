@@ -146,54 +146,64 @@
     -webkit-text-fill-color: transparent;
   }
 
-  /*
-   * Gradient border with transparent fill.
-   * Uses the two-layer background technique:
-   *   layer 1 → transparent color, clipped to padding-box (covers the fill area)
-   *   layer 2 → gradient, clipped to border-box (fills border zone with gradient)
-   * border must be transparent so the background shows through.
-   */
-  .btn-gradient-outline {
-    border: 1.5px solid transparent;
-    background-image:
-      linear-gradient(var(--btn-bg, transparent), var(--btn-bg, transparent)),
-      linear-gradient(135deg, #84FAD5 0%, #EBBFFF 50%, #F6EC85 100%);
-    background-origin: padding-box, border-box;
-    background-clip: padding-box, border-box;
-    /* Override the base cva bg-clip-padding so our dual-layer approach works */
-    background-color: transparent;
-  }
+  /* btn-gradient-outline lives outside @layer utilities below,
+     so it always wins over Tailwind's layered utility classes. */
 }
 /*
  * btn-gradient-outline — outside @layer utilities so it wins over
  * Tailwind's bg-clip-padding utility from the base cva string.
  *
- * Default: black text, transparent fill, gradient border.
- * Hover:   gradient fill (same as gradient_fill variant), black text.
+ * Technique: a masked ::before pseudo-element draws the gradient ring.
+ * This avoids relying on "double" border-style rendering (which some
+ * browsers collapse to 0-width at 1px, causing the whole button to
+ * flood with the gradient instead of just the border).
+ *
+ *   ::before is padded by the ring thickness, filled with the gradient,
+ *   then masked so only the ring (padding area) stays opaque — the
+ *   content-box hole is cut out via mask-composite: exclude.
+ *
+ * The gradient itself matches gradient_fill's exactly (135deg, same
+ * stops) so the outline and fill variants read as the same "brand"
+ * gradient everywhere.
+ *
+ * background-origin/clip: border-box on the base class matters for the
+ * hover state below — it makes the button's own fill span the exact
+ * same box as the ::before ring, so their gradients line up pixel for
+ * pixel with no seam where they meet.
+ *
+ * Default: foreground-colored text, transparent fill, gradient ring.
+ * Hover:   the ring stays, and the button's own background fills the
+ *          cut-out hole with the same gradient — border and fill merge
+ *          seamlessly into one solid gradient, text flips to black.
  */
 .btn-gradient-outline {
-  border: 1.5px solid transparent;
-  color: #0a0a0f;
-  -webkit-text-fill-color: #0a0a0f;
-  /* layer 1: transparent fill clipped to padding-box */
-  /* layer 2: gradient clipped to border-box (only shows in border zone) */
-  background-image:
-    linear-gradient(var(--background), var(--background)),
-    linear-gradient(135deg, #84FAD5 0%, #EBBFFF 50%, #F6EC85 100%);
-  background-origin: padding-box, border-box;
-  background-clip: padding-box, border-box;
-  -webkit-background-clip: padding-box, border-box;
-  transition: background-image 0.2s ease, color 0.2s ease;
+  position: relative;
+  isolation: isolate;
+  border: 1px solid transparent;
+  background-color: transparent;
+  background-image: none;
+  background-origin: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  transition: color 0.2s ease, background-image 0.2s ease;
+}
+
+.btn-gradient-outline::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background-image: linear-gradient(135deg, #84FAD5 0%, #EBBFFF 50%, #F6EC85 100%);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .btn-gradient-outline:hover {
-  /* On hover: solid gradient fill, border becomes part of fill, black text */
-  background-image:
-    linear-gradient(135deg, #84FAD5 0%, #EBBFFF 50%, #F6EC85 100%),
-    linear-gradient(135deg, #84FAD5 0%, #EBBFFF 50%, #F6EC85 100%);
-  background-origin: padding-box, border-box;
-  background-clip: padding-box, border-box;
-  -webkit-background-clip: padding-box, border-box;
-  color: #0a0a0f;
-  -webkit-text-fill-color: #0a0a0f;
+  background-image: linear-gradient(135deg, #84FAD5 0%, #EBBFFF 50%, #F6EC85 100%);
 }
