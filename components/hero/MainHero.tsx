@@ -3,6 +3,8 @@ import Link from "next/link";
 import Image from "next/image"
 import HeroDreamersAnimation from "./HeroDreamersAnimation";
 import WhyChoose from "./WhyChoose";
+import HelpSection from "./HelpSection";
+
 
 const MainHero = () => {
     return (
@@ -33,9 +35,9 @@ const MainHero = () => {
                 </div>
             </section>
 
-            <section className="min-h-screen">
-                <WhyChoose />
-            </section>
+            <WhyChoose />
+
+            <HelpSection />
         </div>
     )
 }
