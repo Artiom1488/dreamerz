@@ -3,7 +3,7 @@ import { HelpArrow } from "@/constants/social-icons";
 
 const HelpSection = () => {
     return (
-        <section className="relative bg-gradient-to-b from-[#f6f6f8] to-[#f0f0f3] py-10 sm:py-14 lg:py-16">
+        <section className="relative overflow-x-clip bg-gradient-to-b from-[#f6f6f8] to-[#f0f0f3] py-10 sm:py-14 lg:py-16">
             {/* Soft seam so the section doesn't cut in abruptly under the hero */}
             <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/[0.04] to-transparent" />
 

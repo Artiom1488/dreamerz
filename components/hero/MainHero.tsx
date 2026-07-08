@@ -4,6 +4,8 @@ import Image from "next/image"
 import HeroDreamersAnimation from "./HeroDreamersAnimation";
 import WhyChoose from "./WhyChoose";
 import HelpSection from "./HelpSection";
+import HowItWorks from "./HowItWorks";
+import LatestDreams from "./LatestDreams";
 
 
 const MainHero = () => {
@@ -38,6 +40,10 @@ const MainHero = () => {
             <WhyChoose />
 
             <HelpSection />
+
+            <HowItWorks />
+
+            <LatestDreams />
         </div>
     )
 }
