@@ -23,12 +23,12 @@ function Progress({
   const progressBar = (
     <ProgressPrimitive.Root
       data-slot="progress"
-      className="relative flex h-1 w-full items-center overflow-x-hidden rounded-full bg-muted"
+      className="relative flex h-3 w-full items-center overflow-x-hidden rounded-full bg-muted"
       {...props}
     >
       <ProgressPrimitive.Indicator
         data-slot="progress-indicator"
-        className="size-full flex-1 bg-primary transition-all"
+        className="size-full flex-1 bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)] transition-all"
         style={{ transform: `translateX(-${100 - normalizedValue}%)` }}
       />
     </ProgressPrimitive.Root>
@@ -43,7 +43,7 @@ function Progress({
   return (
     <ProgressContext.Provider value={{ value: normalizedValue }}>
       <div className={cn("w-full", className)}>
-        <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="mb-2.5 flex items-center justify-between text-sm text-muted-foreground">
           {children}
         </div>
         {progressBar}
