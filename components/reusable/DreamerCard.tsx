@@ -30,7 +30,7 @@ const DreamerCard = ({ dreamer }: DreamerCardProps) => {
   const coverImage = isUsableImageSrc(dreamer.bgimage) ? dreamer.bgimage : fallbackCover
 
   return (
-    <Card className="relative mx-auto min-h-[25.5rem] w-full max-w-sm pt-0">
+    <Card className="relative mx-auto h-[23.75rem] w-full max-w-sm pt-0">
       <div className="relative">
         <img
           src={coverImage}
@@ -46,15 +46,15 @@ const DreamerCard = ({ dreamer }: DreamerCardProps) => {
           />
         </div>
       </div>
-      <CardHeader className="flex min-h-[7.5rem] flex-col items-center gap-1.5 pt-8 text-center">
-        <CardTitle className="w-full text-center font-sans text-2xl leading-none font-semibold tracking-tight text-[#3d3d3d]">
+      <CardHeader className="flex h-[7.25rem] flex-col items-center gap-1.5 pt-8 text-center">
+        <CardTitle className="w-full text-center font-sans text-2xl leading-tight font-semibold tracking-tight text-[#3d3d3d]">
           {dreamer.name}
         </CardTitle>
-        <CardDescription className="mx-auto w-full max-w-[14rem] text-center text-base leading-6 text-[#a3a6ad]">
+        <CardDescription className="mx-auto h-[3.5rem] w-full max-w-[14rem] overflow-hidden text-center text-base leading-6 text-[#a3a6ad]">
           {dreamer.description}
         </CardDescription>
       </CardHeader>
-      <CardFooter className="mt-auto p-4">
+      <CardFooter className="mt-auto p-3.5">
         <Progress value={dreamer.scopevalue} className="w-full max-w-sm">
             <ProgressLabel className="text-base font-semibold">Scope</ProgressLabel>
             <ProgressValue className="text-base font-semibold" />
