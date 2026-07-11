@@ -6,6 +6,7 @@ import WhyChoose from "./WhyChoose";
 import HelpSection from "./HelpSection";
 import HowItWorks from "./HowItWorks";
 import LatestDreams from "./LatestDreams";
+import WhoYouAre from "./WhoSection";
 
 
 const MainHero = () => {
@@ -44,6 +45,8 @@ const MainHero = () => {
             <HowItWorks />
 
             <LatestDreams />
+
+            <WhoYouAre />
         </div>
     )
 }

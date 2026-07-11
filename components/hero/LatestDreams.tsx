@@ -1,6 +1,6 @@
 import latestdreamers from "@/constants/latest-dreams-mock"
 import { Button } from "@/components/ui/button"
-import MainCarousel from "../reusable/Carousel"
+import MainCarousel from "./reusable/Carousel"
 import Link from 'next/link'
 
 const LatestDreams = () => {

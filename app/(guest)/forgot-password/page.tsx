@@ -1,11 +1,12 @@
+'use client'
+import ForgotPassword from "@/components/auth/Forgot-Password";
+import { ForgotPassword as forgotPasswordRequest } from "@/api/requests";
 
 
-const ForgotPassword = () => {
-    return(
-        <div>
-            FORGOT PASSWORD NGA
-        </div>
-    )
-}
+const ForgotPasswordPage = () => {
+  return <ForgotPassword onSubmit={async ({ email }) => {
+        await forgotPasswordRequest(email);
+      }}/>;
+};
 
-export default ForgotPassword;
+export default ForgotPasswordPage;

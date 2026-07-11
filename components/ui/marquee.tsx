@@ -68,11 +68,7 @@ function MarqueeRow({ items, direction = "left", speed = 60 }: MarqueeRowProps) 
 export default function DreamMarquee() {
   return (
     <div
-      className="flex flex-col gap-3 overflow-hidden py-8"
-      style={{
-        maskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)",
-        WebkitMaskImage: "linear-gradient(to right, transparent, black 4%, black 96%, transparent)",
-      }}
+      className="flex flex-col gap-3 overflow-hidden py-8 w-full"
     >
       <MarqueeRow items={firstCarouselData} direction="left" speed={70} />
       <MarqueeRow items={secondCarouselData} direction="right" speed={70} />

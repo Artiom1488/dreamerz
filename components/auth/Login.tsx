@@ -1,4 +1,7 @@
 "use client";
+import { isAxiosError } from "axios";
+
+import { LoginUser } from "@/api/requests";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,20 +23,23 @@ import {
   LogoIconBlack,
 } from "@/constants/social-icons";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { registerSchema } from "@/constants/zod-schemas";
+import { loginSchema } from "@/constants/zod-schemas";
+import { useAuthStore } from "@/stores/auth-store";
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
+type ApiErrorResponse = { message?: string };
 
 interface LoginProps {
   logo?: React.ReactNode;
   title?: string;
   description?: string;
   socialLinks?: { icon: React.ReactNode; href: string; title: string }[];
-  onSubmit?: (data: RegisterFormData) => void;
+  onSubmit?: (data: LoginFormData) => void;
   termsText?: React.ReactNode;
   loginLink?: { text: string; href: string };
   className?: string;
@@ -61,12 +67,67 @@ const Login = ({
   loginLink = { text: "Not a dreamer yet?", href: "/register" },
   className,
 }: LoginProps) => {
+  const router = useRouter();
+  const setTokens = useAuthStore((state) => state.setTokens);
   const [showPassword, setShowPassword] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  const form = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: { email: "", password: "", confirmPassword: "" },
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+    mode: "onChange",
+    reValidateMode: "onChange",
   });
+
+  const handleSubmit = async (data: LoginFormData): Promise<void> => {
+    setSubmitError("");
+
+    try {
+      const response = await LoginUser({
+        email: data.email,
+        password: data.password,
+      });
+
+      const tokenPayload = getTokenPayload(response.data);
+      if (!tokenPayload) {
+        setSubmitError("Login succeeded but token payload is invalid.");
+        return;
+      }
+
+      setTokens(tokenPayload.accessToken, tokenPayload.refreshToken);
+
+      onSubmit?.(data);
+      router.push("/newsfeed");
+    } catch (error) {
+      if (isAxiosError<ApiErrorResponse>(error)) {
+        const message = error.response?.data?.message ?? "Login failed. Please try again.";
+        setSubmitError(message);
+        return;
+      }
+
+      setSubmitError(
+        error instanceof Error ? error.message : "Login failed. Please try again.",
+      );
+    }
+  };
+
+  const getTokenPayload = (
+    payload: unknown,
+  ): { accessToken: string; refreshToken: string } | null => {
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+
+    const data = payload as Record<string, unknown>;
+    const accessToken = data.accessToken;
+    const refreshToken = data.refreshToken;
+
+    if (typeof accessToken === "string" && typeof refreshToken === "string") {
+      return { accessToken, refreshToken };
+    }
+
+    return null;
+  };
 
   const PasswordToggle = ({
     show,
@@ -103,7 +164,7 @@ const Login = ({
         <CardContent className="space-y-4">
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit((data) => onSubmit?.(data))}
+              onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-4"
             >
               <FormField
@@ -159,6 +220,12 @@ const Login = ({
                 )}
               />
 
+              {submitError ? (
+                <p className="text-center text-sm text-destructive">
+                  {submitError}
+                </p>
+              ) : null}
+
               <Button
                 type="submit"
                 className="w-full"
@@ -170,33 +237,6 @@ const Login = ({
               </Button>
             </form>
           </Form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-dashed" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-4 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            {socialLinks.map((link) => (
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full"
-                key={link.title}
-                asChild
-              >
-                <a href={link.href} aria-label={`Log in with ${link.title}`}>
-                  {link.icon}
-                </a>
-              </Button>
-            ))}
-          </div>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4">
@@ -216,4 +256,4 @@ const Login = ({
 };
 
 export default Login;
-export { type RegisterFormData };
+export { type LoginFormData };

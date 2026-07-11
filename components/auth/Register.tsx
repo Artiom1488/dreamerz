@@ -1,4 +1,5 @@
 "use client";
+import { RegisterUser } from "@/api/requests";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,8 @@ import {
   LogoIconBlack,
 } from "@/constants/social-icons";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -61,13 +63,39 @@ const Register = ({
   loginLink = { text: "Already have an account?", href: "/login" },
   className,
 }: Register01Props) => {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: { email: "", password: "", confirmPassword: "" },
+    mode: "onChange",
+    reValidateMode: "onChange",
+    criteriaMode: "all",
   });
+
+  const handleSubmit = async (data: RegisterFormData): Promise<void> => {
+    setSubmitError("");
+
+    try {
+      await RegisterUser({
+        email: data.email,
+        password: data.password,
+      });
+
+      onSubmit?.(data);
+      router.push(`/check-email?email=${encodeURIComponent(data.email)}`);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Please try again.";
+
+      setSubmitError(message);
+    }
+  };
 
   const PasswordToggle = ({
     show,
@@ -104,7 +132,7 @@ const Register = ({
         <CardContent className="space-y-4">
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit((data) => onSubmit?.(data))}
+              onSubmit={form.handleSubmit(handleSubmit)}
               className="space-y-4"
             >
               <FormField
@@ -179,6 +207,12 @@ const Register = ({
                 )}
               />
 
+              {submitError ? (
+                <p className="text-center text-sm text-destructive">
+                  {submitError}
+                </p>
+              ) : null}
+
               <Button
                 type="submit"
                 className="w-full"
@@ -192,33 +226,6 @@ const Register = ({
               </Button>
             </form>
           </Form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-dashed" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-4 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            {socialLinks.map((link) => (
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full"
-                key={link.title}
-                asChild
-              >
-                <a href={link.href} aria-label={`Sign up with ${link.title}`}>
-                  {link.icon}
-                </a>
-              </Button>
-            ))}
-          </div>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4">

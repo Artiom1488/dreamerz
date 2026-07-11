@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Indie_Flower } from "next/font/google";
+
+import { Toaster } from "@/components/ui/sonner";
+
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -30,6 +33,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col overflow-x-hidden overflow-y-auto">
         {children}
+        <Toaster richColors />
       </body>
     </html>
   );

@@ -16,7 +16,7 @@ const HelpSection = () => {
             />
             <HelpArrow className="pointer-events-none absolute right-4 -top-14 h-[420px] w-auto drop-shadow-sm sm:right-8 sm:-top-20 sm:h-[560px] lg:right-12 lg:-top-28 lg:h-[760px]" />
 
-            <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-8 sm:gap-10">
+            <div className="relative z-10 flex w-full flex-col gap-8 sm:gap-10">
                 <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 px-4 text-center sm:gap-4 sm:px-8">
                     <h2 className="font-sans text-4xl font-bold tracking-tight text-[#161616] sm:text-5xl">
                         Help Others — Help Yourself
