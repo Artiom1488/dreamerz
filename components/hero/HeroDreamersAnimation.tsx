@@ -1,7 +1,10 @@
 "use client";
 
-import Lottie from "lottie-react";
-import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { Suspense, useEffect, useState } from "react";
+
+// Dynamically import Lottie to reduce initial bundle size
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
 
 type LottieAsset = {
   u?: string;
@@ -11,29 +14,40 @@ type LottieAnimation = {
   assets?: LottieAsset[];
 };
 
-const HeroDreamersAnimation = () => {
-  const [animationData, setAnimationData] = useState<LottieAnimation | null>(null);
+const HeroDreamersAnimationContent = () => {
+  const [animationData, setAnimationData] = useState<LottieAnimation | null>(
+    null,
+  );
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadAnimation = async () => {
-      const response = await fetch("/lottie/Dreamers.json", { cache: "force-cache" });
-      if (!response.ok) {
-        return;
-      }
+      try {
+        const response = await fetch("/lottie/Dreamers.json");
+        if (!response.ok) {
+          throw new Error("Failed to load animation");
+        }
 
-      const data = (await response.json()) as LottieAnimation;
-      const normalizedAssets = data.assets?.map((asset) => ({
-        ...asset,
-        u: "/lottie/images/",
-      }));
+        const data = (await response.json()) as LottieAnimation;
+        const normalizedAssets = data.assets?.map((asset) => ({
+          ...asset,
+          u: "/lottie/images/",
+        }));
 
-      if (isMounted) {
-        setAnimationData({
-          ...data,
-          assets: normalizedAssets,
-        });
+        if (isMounted) {
+          setAnimationData({
+            ...data,
+            assets: normalizedAssets,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load Lottie animation:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -44,8 +58,12 @@ const HeroDreamersAnimation = () => {
     };
   }, []);
 
-  if (!animationData) {
-    return <div className="h-full w-full" />;
+  if (isLoading || !animationData) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-white" />
+      </div>
+    );
   }
 
   return (
@@ -55,6 +73,20 @@ const HeroDreamersAnimation = () => {
       autoplay
       className="h-full w-full"
     />
+  );
+};
+
+const HeroDreamersAnimation = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full w-full items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-white" />
+        </div>
+      }
+    >
+      <HeroDreamersAnimationContent />
+    </Suspense>
   );
 };
 

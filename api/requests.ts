@@ -1,14 +1,18 @@
 import api from "./axios";
-import { LoginPayload, RegisterPayload } from "./request-types";
+import {
+  LoginPayload,
+  RegisterPayload,
+  User,
+  UpdateProfilePayload,
+} from "./request-types";
 
-
-// POST 
+// POST
 
 export const RegisterUser = (payload: RegisterPayload) =>
-	api.post("/api/v1/auth/register", payload);
+  api.post("/api/v1/auth/register", payload);
 
 export const LoginUser = (payload: LoginPayload) =>
-	api.post("/api/v1/auth/login", payload);
+  api.post("/api/v1/auth/login", payload);
 
 export const ForgotPassword = async (email: string) => {
   return await api.post("/api/v1/auth/profile/forgot-password", {
@@ -19,6 +23,10 @@ export const ForgotPassword = async (email: string) => {
 // GET
 
 export const getRefreshToken = () => api.get("/api/v1/auth/refresh");
-export const getUser = () => api.get("/api/v1/auth/profile");
+export const getUser = () => api.get<User>("/api/v1/auth/profile");
+
+//PATCH
+export const updateUser = (payload: UpdateProfilePayload) =>
+  api.patch("/api/v1/auth/profile", payload);
 
 //DELETE
