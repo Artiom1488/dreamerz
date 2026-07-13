@@ -23,8 +23,8 @@ import {
 } from "@/components/ui/select";
 
 const formSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
   gender: z.enum(["MALE", "FEMALE"]),
 });
 

@@ -1,3 +1,4 @@
+// page.tsx
 "use client";
 
 import { useState } from "react";
@@ -6,9 +7,15 @@ import { OnboardingStep1 } from "@/components/onboarding/OnboardingStep1";
 import { OnboardingStep2 } from "@/components/onboarding/OnboardingStep2";
 import { OnboardingStep3 } from "@/components/onboarding/OnboardingStep3";
 import { OnboardingStep4 } from "@/components/onboarding/OnboardingStep4";
+import OnboardingStep5 from "@/components/onboarding/OnboardingStep5";
 
 // Shape of the data collected across all onboarding steps.
 // Extend this as steps 3-5 are built out.
+//
+// NOTE: Step 3 ("about you" bio) and Step 4 ("your dream") both collect a
+// description + photos, but they are NOT the same data — they'll go to
+// different places on the backend eventually. They're namespaced here
+// (bio* vs dream*) so they never collide/leak into each other.
 interface OnboardingFormData {
   firstName?: string;
   lastName?: string;
@@ -18,10 +25,17 @@ interface OnboardingFormData {
   birthDate?: string;
   country?: string;
   city?: string;
-  description?: string;
-  photos?: File[];
+  // Step 3 — bio
+  bioDescription?: string;
+  bioPhotos?: File[];
+  // Step 4 — dream
+  dreamDescription?: string;
+  dreamPhotos?: File[];
   dreamAmount?: number;
   isDreamAngel?: boolean;
+  // Step 5 — subscription plan
+  planId?: string;
+  customAmount?: number;
 }
 
 const EditForm = () => {
@@ -63,7 +77,11 @@ const EditForm = () => {
   };
 
   const handleStep3Next = (data: { description: string; photos: File[] }) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+    setFormData((prev) => ({
+      ...prev,
+      bioDescription: data.description,
+      bioPhotos: data.photos,
+    }));
     setStep(4);
   };
 
@@ -77,12 +95,37 @@ const EditForm = () => {
     dreamAmount?: number;
     isDreamAngel: boolean;
   }) => {
-    setFormData((prev) => ({ ...prev, ...data }));
+    setFormData((prev) => ({
+      ...prev,
+      dreamDescription: data.description,
+      dreamPhotos: data.photos,
+      dreamAmount: data.dreamAmount,
+      isDreamAngel: data.isDreamAngel,
+    }));
     setStep(5);
   };
 
   const handleStep4Back = () => {
     setStep(3);
+  };
+
+  const handleStep5Next = (planId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      planId,
+    }));
+    // TODO: Submit final form data to backend
+    console.log("Onboarding complete:", { ...formData, planId });
+  };
+
+  const handleStep5Back = () => {
+    setStep(4);
+  };
+
+  const handleStep5Skip = () => {
+    // Skip subscription for 7 days
+    console.log("Skipping subscription for 7 days");
+    // TODO: Handle skip logic (e.g., set a flag, navigate to dashboard)
   };
 
   // Future: Determine starting step based on user.onboardingStatus
@@ -116,7 +159,10 @@ const EditForm = () => {
   if (step === 3) {
     return (
       <OnboardingStep3
-        initialValues={formData}
+        initialValues={{
+          description: formData.bioDescription,
+          photos: formData.bioPhotos,
+        }}
         onNext={handleStep3Next}
         onBack={handleStep3Back}
       />
@@ -126,15 +172,29 @@ const EditForm = () => {
   if (step === 4) {
     return (
       <OnboardingStep4
-        initialValues={formData}
+        initialValues={{
+          description: formData.dreamDescription,
+          photos: formData.dreamPhotos,
+          dreamAmount: formData.dreamAmount,
+          isDreamAngel: formData.isDreamAngel,
+        }}
         onNext={handleStep4Next}
         onBack={handleStep4Back}
       />
     );
   }
 
-  // Step 5 isn't built yet — placeholder so navigation doesn't
-  // silently dead-end once step 4 is submitted.
+  if (step === 5) {
+    return (
+      <OnboardingStep5
+        onBack={handleStep5Back}
+        onSubscribe={handleStep5Next}
+        onSkip={handleStep5Skip}
+      />
+    );
+  }
+
+  // Fallback for any unexpected step
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Step {step}</h1>

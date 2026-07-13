@@ -1,8 +1,5 @@
 
-interface IconProps {
-  className?: string;
-}
-
+type IconProps = { className?: string; style?: React.CSSProperties };
 const GoogleIcon = ({ className }: IconProps) => (
   <svg className={className} viewBox="0 0 24 24">
     <path
@@ -71,7 +68,7 @@ const LogoIconWhite = ({ className }: IconProps) => (
 );
 
 
-const HelpArrow = (props) => (
+const HelpArrow = (props: IconProps) => (
   <svg
     width={743}
     height={843}
@@ -135,10 +132,297 @@ const HelpArrow = (props) => (
   </svg>
 );
 
+function IconArrowLeft({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path
+        d="M19 12H5M5 12L12 19M5 12L12 5"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconSparkle({ className, style }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} style={style}>
+      <path
+        d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function IconInfo({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth={1.4} />
+      <path
+        d="M12 11V16.2"
+        stroke="currentColor"
+        strokeWidth={1.4}
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="8" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function IconShopper({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 66 66" fill="none" className={className}>
+      <path
+        d="M49.4989 22.2932H16.1687C14.8446 22.2932 13.7147 23.2504 13.497 24.5564L8.98284 51.6415C8.70768 53.2925 9.98079 54.7953 11.6545 54.7953H54.0131C55.6868 54.7953 56.9599 53.2925 56.6847 51.6415L52.1706 24.5564C51.9529 23.2504 50.8229 22.2932 49.4989 22.2932Z"
+        stroke="url(#shopper_a)"
+        strokeWidth={4.02407}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M22 22.2928C22 16.3093 26.8506 11.4587 32.834 11.4587C38.8175 11.4587 43.6681 16.3093 43.6681 22.2928"
+        stroke="url(#shopper_b)"
+        strokeWidth={4.02407}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <defs>
+        <linearGradient
+          id="shopper_a"
+          x1="19.18"
+          y1="8.36"
+          x2="54.98"
+          y2="32.83"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+        <linearGradient
+          id="shopper_b"
+          x1="26.64"
+          y1="6.82"
+          x2="39.42"
+          y2="18.70"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function IconPlanet({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 66 66" fill="none" className={className}>
+      <path
+        d="M33.1603 54.7949C45.1272 54.7949 54.8283 45.0938 54.8283 33.1268C54.8283 21.1599 45.1272 11.4587 33.1603 11.4587C21.1933 11.4587 11.4922 21.1599 11.4922 33.1268C11.4922 45.0938 21.1933 54.7949 33.1603 54.7949Z"
+        stroke="url(#planet_a)"
+        strokeWidth={4.02407}
+        strokeMiterlimit={10}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M46.7033 15.792C52.1471 14.8985 56.2204 15.6058 57.6797 18.1334C60.6714 23.3153 51.5448 34.1855 37.2947 42.4128C23.0446 50.64 9.0674 53.1089 6.07567 47.927C4.36845 44.97 6.6074 40.1607 11.4927 35.0472"
+        stroke="url(#planet_b)"
+        strokeWidth={4.02407}
+        strokeMiterlimit={10}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <defs>
+        <linearGradient
+          id="planet_a"
+          x1="20.77"
+          y1="-7.11"
+          x2="59.95"
+          y2="11.10"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+        <linearGradient
+          id="planet_b"
+          x1="16.80"
+          y1="0.33"
+          x2="55.86"
+          y2="27.52"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function IconHeart({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 66 66" fill="none" className={className}>
+      <path
+        d="M33.1578 54.7949C33.1578 54.7949 8.78125 41.2184 8.78125 24.9264C8.78125 8.63437 27.7408 7.27671 33.1578 20.0236C38.5749 7.27671 57.5344 8.63437 57.5344 24.9264C57.5344 41.2184 33.1578 54.7949 33.1578 54.7949Z"
+        stroke="url(#heart_a)"
+        strokeWidth={4.02407}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <defs>
+        <linearGradient
+          id="heart_a"
+          x1="19.22"
+          y1="-7.11"
+          x2="61.31"
+          y2="14.90"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function IconLeaf({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 66 66" fill="none" className={className}>
+      <path
+        d="M19.1345 46.8429C7.65439 27.7095 22.9612 12.4027 51.6614 14.3161C53.5746 43.0161 38.2679 58.323 19.1345 46.8429Z"
+        stroke="url(#leaf_a)"
+        strokeWidth={4.02016}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M14.1836 51.7914L29.4904 36.4846"
+        stroke="url(#leaf_b)"
+        strokeWidth={4.02016}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <defs>
+        <linearGradient
+          id="leaf_a"
+          x1="23.12"
+          y1="-1.50"
+          x2="56.14"
+          y2="13.85"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+        <linearGradient
+          id="leaf_b"
+          x1="17.46"
+          y1="29.92"
+          x2="31.30"
+          y2="36.36"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function IconRainbow({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 66 66" fill="none" className={className}>
+      <path
+        d="M57.4715 46.625V41.2133C57.4715 27.7635 46.5683 16.8604 33.1185 16.8604C19.6688 16.8604 8.76562 27.7635 8.76562 41.2133V46.625"
+        stroke="url(#rainbow_a)"
+        strokeWidth={4.02016}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M49.3573 46.6251V41.2133C49.3573 32.2468 42.0885 24.978 33.122 24.978C24.1555 24.978 16.8867 32.2468 16.8867 41.2133V46.6251"
+        stroke="url(#rainbow_b)"
+        strokeWidth={4.02016}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M41.2392 46.6249V41.2131C41.2392 36.7299 37.6048 33.0955 33.1215 33.0955C28.6383 33.0955 25.0039 36.7299 25.0039 41.2131V46.6249"
+        stroke="url(#rainbow_c)"
+        strokeWidth={4.02016}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <defs>
+        <linearGradient
+          id="rainbow_a"
+          x1="19.20"
+          y1="4.10"
+          x2="53.12"
+          y2="29.91"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+        <linearGradient
+          id="rainbow_b"
+          x1="23.84"
+          y1="15.70"
+          x2="47.86"
+          y2="32.45"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+        <linearGradient
+          id="rainbow_c"
+          x1="28.48"
+          y1="27.30"
+          x2="42.09"
+          y2="34.89"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="#84FAD5" />
+          <stop offset="0.577071" stopColor="#EBBFFF" />
+          <stop offset="1" stopColor="#F6EC85" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+
+
 
 export {
   GoogleIcon,
   LogoIconBlack,
   LogoIconWhite,
-  HelpArrow
+  HelpArrow,
+  IconArrowLeft,
+  IconSparkle,
+  IconInfo,
+  IconShopper,
+  IconPlanet,
+  IconHeart,
+  IconLeaf,
+  IconRainbow,
 };
