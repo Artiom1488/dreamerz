@@ -1,10 +1,15 @@
 "use client";
 
-import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { ArrowLeft, Mail, Phone, Calendar as CalendarIcon } from "lucide-react";
+import { onboardingStep2Schema } from "@/constants/zod-schemas";
+import type {
+  OnboardingStep2Props,
+  OnboardingStep2Data,
+} from "@/types/onboarding-types";
+import { ArrowLeft, Mail } from "lucide-react";
+import { DatePicker, toISODateString } from "@/components/reusable/date-picker";
+import { PhoneInput } from "@/components/reusable/phone-input";
 import {
   Form,
   FormControl,
@@ -23,57 +28,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LogoIconBlack } from "@/constants/social-icons";
+import { COUNTRIES, CITIES_BY_COUNTRY } from "@/data/mock-data/onboarding";
 
-// TODO: replace with a real country dataset (see notes below the component)
-const COUNTRIES = [
-  { code: "MD", name: "Moldova" },
-  { code: "RO", name: "Romania" },
-  { code: "UA", name: "Ukraine" },
-  { code: "US", name: "United States" },
-];
-
-// TODO: replace with a real city dataset scoped by country (see notes below)
-const CITIES_BY_COUNTRY: Record<string, string[]> = {
-  MD: ["Chișinău", "Bălți", "Anenii Noi", "Orhei"],
-  RO: ["Bucharest", "Cluj-Napoca", "Iași"],
-  UA: ["Kyiv", "Lviv", "Odesa"],
-  US: ["New York", "Los Angeles", "Chicago"],
-};
-
-const formSchema = z.object({
-  email: z.string().email("Enter a valid email address").optional(),
-  phoneNumber: z.string().min(6, "Phone number is required"),
-  birthDate: z.string().min(1, "Birth date is required"),
-  country: z.string().min(1, "Country is required"),
-  city: z.string().min(1, "City is required"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = OnboardingStep2Data;
 
 const inputStyles =
-  "h-12 w-full rounded-lg border-0 bg-slate-100 px-4 text-slate-600 focus-visible:ring-1 focus-visible:ring-slate-300 focus-visible:ring-offset-0";
+  "h-10 w-full rounded-lg border-0 bg-slate-100 px-3 text-slate-600 focus-visible:ring-1 focus-visible:ring-slate-300 focus-visible:ring-offset-0 sm:h-11 sm:px-4 sm:h-12";
 
-interface OnboardingStep2Props {
-  initialValues?: {
-    email?: string;
-    phoneNumber?: string;
-    birthDate?: string;
-    country?: string;
-    city?: string;
-  };
-  onNext: (data: FormValues) => void;
-  onBack: () => void;
-}
+// No one signing up today was born in the future, and 120 years is a generous upper bound.
+const MAX_BIRTH_DATE = toISODateString(new Date());
+const MIN_BIRTH_DATE = toISODateString(
+  new Date(
+    new Date().getFullYear() - 120,
+    new Date().getMonth(),
+    new Date().getDate(),
+  ),
+);
 
 export function OnboardingStep2({
   initialValues,
   onNext,
   onBack,
 }: OnboardingStep2Props) {
-  const dateInputRef = useRef<HTMLInputElement | null>(null);
-
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(onboardingStep2Schema),
     defaultValues: {
       email: initialValues?.email || "",
       phoneNumber: initialValues?.phoneNumber || "",
@@ -88,39 +66,39 @@ export function OnboardingStep2({
     ? CITIES_BY_COUNTRY[selectedCountry] || []
     : [];
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = (data: OnboardingStep2Data) => {
     onNext(data);
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[#efeef2] p-6">
-      <div className="w-full max-w-md space-y-6 rounded-3xl bg-white p-8 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:p-10">
+    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto bg-[#efeef2] px-4 py-6 sm:px-6 sm:py-8">
+      <div className="w-full max-w-md space-y-5 rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:space-y-6 sm:p-8 md:p-10">
         {/* Back + step indicator */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-200"
+            className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-500 transition-colors hover:bg-gray-200 sm:px-3 sm:py-1.5 sm:text-sm"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
+            <ArrowLeft className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             back
           </button>
           <div className="h-px flex-1 bg-gray-200" />
-          <span className="whitespace-nowrap text-xs text-muted-foreground">
+          <span className="whitespace-nowrap text-[10px] text-muted-foreground sm:text-xs">
             step 2 of 5
           </span>
         </div>
 
         {/* Logo */}
         <div className="flex items-center justify-center">
-          <LogoIconBlack className="h-8 w-auto dark:invert" />
+          <LogoIconBlack className="h-6 w-auto dark:invert sm:h-8" />
         </div>
 
         {/* Form */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
-              <h2 className="text-center text-2xl font-heading font-bold">
+              <h2 className="text-center text-lg font-heading font-bold sm:text-xl md:text-2xl">
                 Let us know more about you
               </h2>
 
@@ -154,15 +132,11 @@ export function OnboardingStep2({
                   <FormItem>
                     <FormLabel>Phone number*</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="tel"
-                          placeholder="+373 00 000 000"
-                          className={`${inputStyles} pr-10`}
-                          {...field}
-                        />
-                        <Phone className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                      </div>
+                      <PhoneInput
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -173,29 +147,19 @@ export function OnboardingStep2({
               <FormField
                 control={form.control}
                 name="birthDate"
-                render={({ field: { ref, ...field } }) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Birth Date*</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="date"
-                          className={`${inputStyles} pr-10 [&::-webkit-calendar-picker-indicator]:pointer-events-none [&::-webkit-calendar-picker-indicator]:opacity-0`}
-                          ref={(el) => {
-                            ref(el);
-                            dateInputRef.current = el;
-                          }}
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          tabIndex={-1}
-                          onClick={() => dateInputRef.current?.showPicker?.()}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                        >
-                          <CalendarIcon className="h-4 w-4" />
-                        </button>
-                      </div>
+                      <DatePicker
+                        ref={field.ref}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        placeholder="Select your birth date"
+                        maxDate={MAX_BIRTH_DATE}
+                        minDate={MIN_BIRTH_DATE}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

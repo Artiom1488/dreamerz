@@ -42,6 +42,7 @@ export default function UserLayout({
   const clearTokens = useAuthStore((state) => state.clearTokens);
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
+  const clearUser = useUserStore((state) => state.clearUser);
   const [isLoadingUser, setIsLoadingUser] = useState(false);
   const [hasTriedFetch, setHasTriedFetch] = useState(false);
 
@@ -68,6 +69,7 @@ export default function UserLayout({
           // If 401, clear tokens and redirect to login
           if (error?.response?.status === 401) {
             clearTokens();
+            clearUser(); // Clear user data on auth failure
             router.replace("/login");
           }
         })
@@ -75,16 +77,7 @@ export default function UserLayout({
           setIsLoadingUser(false);
         });
     }
-  }, [
-    accessToken,
-    hasHydrated,
-    user,
-    isLoadingUser,
-    hasTriedFetch,
-    router,
-    setUser,
-    clearTokens,
-  ]);
+  }, [accessToken, hasHydrated, user, isLoadingUser, hasTriedFetch]);
 
   useEffect(() => {
     // Check onboarding status and redirect if not completed
@@ -119,7 +112,7 @@ export default function UserLayout({
         {!isOnboardingPage && <SidebarBackdrop />}
         <SidebarInset>
           {!isOnboardingPage && <UserNavbar />}
-          <main className="flex-1">{children}</main>
+          <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </>

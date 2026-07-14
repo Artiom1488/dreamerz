@@ -12,6 +12,11 @@ import {
   IconSparkle,
   IconInfo,
 } from "@/constants/social-icons";
+import type {
+  OnboardingStep4Props,
+  OnboardingStep4Data,
+  OnboardingStep4Values,
+} from "@/types/onboarding-types";
 /**
  * OnboardingStep4 — "Create Your Dream"
  *
@@ -47,33 +52,6 @@ const DREAM_CATEGORY_ICONS = [
   IconRainbow,
 ];
 
-export interface OnboardingStep4Values {
-  description?: string;
-  photos?: File[];
-  dreamAmount?: number;
-  isDreamAngel?: boolean;
-}
-
-/** Fields this step hands back via onNext. */
-export interface OnboardingStep4Data {
-  description: string;
-  photos: File[];
-  dreamAmount?: number;
-  isDreamAngel: boolean;
-}
-
-export interface OnboardingStep4Props {
-  /** Previously entered values, if the user is revisiting this step. */
-  initialValues?: OnboardingStep4Values;
-  /** Called once with the step's data — either a full dream, or just the isDreamAngel flag. */
-  onNext: (data: OnboardingStep4Data) => void;
-  /** Called when the person taps "back". */
-  onBack: () => void;
-  /** Used for the "step X of Y" label and progress marker. */
-  currentStep?: number;
-  totalSteps?: number;
-}
-
 const MIN_AMOUNT = 150;
 const MIN_IMAGES = 1;
 // One slot per category icon — uploads fill these boxes directly.
@@ -86,19 +64,6 @@ export function OnboardingStep4({
   currentStep = 4,
   totalSteps = 5,
 }: OnboardingStep4Props) {
-  // Load the marker-style display font used for the headline, so this
-  // component renders correctly even without extra font setup.
-  useEffect(() => {
-    const id = "dreamerz-permanent-marker-font";
-    if (document.getElementById(id)) return;
-    const link = document.createElement("link");
-    link.id = id;
-    link.rel = "stylesheet";
-    link.href =
-      "https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap";
-    document.head.appendChild(link);
-  }, []);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<{ file: File; url: string }[]>(() =>
     (initialValues?.photos ?? []).slice(0, MAX_IMAGES).map((file) => ({
@@ -119,10 +84,11 @@ export function OnboardingStep4({
   }>({});
 
   useEffect(() => {
-    // Clean up object URLs on unmount to avoid leaking memory.
-    return () => images.forEach((img) => URL.revokeObjectURL(img.url));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Clean up object URLs when images change or on unmount
+    return () => {
+      images.forEach((img) => URL.revokeObjectURL(img.url));
+    };
+  }, [images]);
 
   const progressPercent = useMemo(
     () => Math.min(100, Math.max(0, (currentStep / totalSteps) * 100)),
@@ -184,16 +150,16 @@ export function OnboardingStep4({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#efefef] p-6">
-      <div className="w-full max-w-[520px] rounded-[28px] bg-white p-8 shadow-sm sm:p-10">
+    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto bg-[#efefef] px-4 py-6 sm:px-6 sm:py-8">
+      <div className="w-full max-w-[520px] rounded-[28px] bg-white p-4 shadow-sm sm:p-8 md:p-10">
         {/* Top bar: back button, progress line, step counter */}
-        <div className="mb-9 flex items-center gap-4">
+        <div className="mb-5 flex items-center gap-2 sm:mb-6 sm:gap-3 md:mb-9 md:gap-4">
           <button
             type="button"
             onClick={onBack}
-            className="flex shrink-0 items-center gap-1.5 rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-200"
+            className="flex shrink-0 items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600 transition-colors hover:bg-gray-200 sm:px-3 sm:py-1.5 sm:text-sm md:px-4 md:py-2"
           >
-            <IconArrowLeft className="h-3.5 w-3.5" />
+            <IconArrowLeft className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             back
           </button>
 
@@ -204,7 +170,7 @@ export function OnboardingStep4({
             />
           </div>
 
-          <span className="shrink-0 text-sm text-gray-400">
+          <span className="shrink-0 text-[10px] text-gray-400 sm:text-xs md:text-sm">
             step {currentStep} of {totalSteps}
           </span>
         </div>
@@ -212,11 +178,11 @@ export function OnboardingStep4({
         {/* Logo */}
         <div className="flex flex-col items-center">
           <svg
-            width="88"
-            height="22"
+            width="64"
+            height="16"
             viewBox="0 0 88 22"
             fill="none"
-            className="text-gray-900"
+            className="text-gray-900 sm:w-[72px] sm:h-[18px] md:w-[88px] md:h-[22px]"
           >
             <path
               d="M3 18C18 2 58 2 74 13"
@@ -229,21 +195,18 @@ export function OnboardingStep4({
               fill="currentColor"
             />
           </svg>
-          <div className="mt-1 text-[13px] font-bold tracking-[0.35em] text-gray-900">
+          <div className="mt-1 text-[10px] font-bold tracking-[0.35em] text-gray-900 sm:text-[11px] md:text-[13px]">
             DREAMERZ
           </div>
         </div>
 
         {/* Headline */}
-        <h1
-          className="mt-5 text-center text-[42px] leading-none text-gray-900"
-          style={{ fontFamily: "'Permanent Marker', cursive" }}
-        >
+        <h1 className="mt-3 text-center font-indie-flower text-[28px] leading-none text-gray-900 sm:mt-4 sm:text-[32px] md:mt-5 md:text-[42px]">
           Create Your Dream
         </h1>
 
         {/* Pro tip */}
-        <p className="mx-auto mt-6 max-w-[420px] text-center text-[15px] leading-relaxed text-gray-500">
+        <p className="mx-auto mt-3 max-w-[420px] text-center text-[12px] leading-relaxed text-gray-500 sm:mt-4 sm:text-[13px] md:mt-6 md:text-[15px]">
           <span className="font-semibold text-gray-700">Pro Tip:</span> Upload
           3+ high-quality pictures that capture your dream to help others
           empathize and connect with your vision. Pairing them with an inspiring
@@ -253,13 +216,13 @@ export function OnboardingStep4({
         {/* Category icon strip — doubles as photo slots. Each box shows the
             uploaded picture at that index once you've added it, otherwise the
             gradient + icon placeholder. */}
-        <div className="mt-8 flex justify-center gap-1">
+        <div className="mt-4 flex justify-center gap-1 sm:mt-6 sm:gap-1 md:mt-8">
           {DREAM_CATEGORY_ICONS.map((Icon, i) => {
             const img = images[i];
             return (
               <div
                 key={i}
-                className="group relative h-20 w-20 overflow-hidden rounded-2xl"
+                className="group relative h-14 w-14 overflow-hidden rounded-2xl sm:h-16 sm:w-16 md:h-20 md:w-20"
               >
                 {img ? (
                   <>
@@ -289,7 +252,7 @@ export function OnboardingStep4({
                     />
                     <div className="absolute inset-0 bg-white/55" />
                     <div className="relative flex h-full w-full items-center justify-center">
-                      <Icon className="h-9 w-9" />
+                      <Icon className="h-6 w-6 sm:h-7 sm:w-7 md:h-9 md:w-9" />
                     </div>
                   </>
                 )}
@@ -299,13 +262,13 @@ export function OnboardingStep4({
         </div>
 
         {/* Upload */}
-        <div className="mt-8 flex justify-center">
+        <div className="mt-4 flex justify-center sm:mt-6 md:mt-8">
           <Button
             type="button"
             variant="gradient_outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={images.length >= MAX_IMAGES}
-            className="rounded-full px-10 py-2.5 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full px-6 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50 sm:px-8 sm:py-2 sm:text-sm md:px-10 md:py-2.5"
           >
             Upload
           </Button>
@@ -318,7 +281,7 @@ export function OnboardingStep4({
           className="hidden"
           onChange={handleFilesSelected}
         />
-        <p className="mt-3 text-center text-sm text-gray-400">
+        <p className="mt-1.5 text-center text-[10px] text-gray-400 sm:mt-2 sm:text-xs md:mt-3 md:text-sm">
           *at least one picture
         </p>
         {errors.images && (
@@ -328,8 +291,8 @@ export function OnboardingStep4({
         )}
 
         {/* Dream description */}
-        <div className="mt-8">
-          <label className="mb-2 block text-[15px] font-medium text-gray-800">
+        <div className="mt-4 sm:mt-6 md:mt-8">
+          <label className="mb-2 block text-[12px] font-medium text-gray-800 sm:text-[13px] md:text-[15px]">
             Dream Description<span className="text-gray-400">*</span>
           </label>
           <textarea
@@ -338,9 +301,9 @@ export function OnboardingStep4({
               setDescription(e.target.value);
               setErrors((prev) => ({ ...prev, description: undefined }));
             }}
-            rows={6}
+            rows={3}
             placeholder="Tell your story..."
-            className="w-full resize-none rounded-2xl border border-gray-200 p-4 text-[15px] text-gray-800 placeholder:text-gray-300 focus:border-gray-300 focus:outline-none"
+            className="w-full resize-none rounded-2xl border border-gray-200 p-2.5 text-[12px] text-gray-800 placeholder:text-gray-300 focus:border-gray-300 focus:outline-none sm:rows-4 sm:p-3 sm:text-[13px] md:rows-6 md:p-4 md:text-[15px]"
           />
           {errors.description && (
             <p className="mt-1 text-sm text-red-400">{errors.description}</p>
@@ -348,12 +311,14 @@ export function OnboardingStep4({
         </div>
 
         {/* Dream amount */}
-        <div className="mt-6">
-          <label className="mb-2 block text-[15px] font-medium text-gray-800">
+        <div className="mt-3 sm:mt-4 md:mt-6">
+          <label className="mb-2 block text-[12px] font-medium text-gray-800 sm:text-[13px] md:text-[15px]">
             Dream Amount<span className="text-gray-400">*</span>
           </label>
-          <div className="flex items-center rounded-2xl border border-gray-200 px-4 py-3.5">
-            <span className="mr-2 text-[15px] text-gray-400">$</span>
+          <div className="flex items-center rounded-2xl border border-gray-200 px-2.5 py-2 sm:px-3 sm:py-2.5 md:px-4 md:py-3.5">
+            <span className="mr-2 text-[12px] text-gray-400 sm:text-[13px] md:text-[15px]">
+              $
+            </span>
             <input
               type="number"
               min={MIN_AMOUNT}
@@ -363,20 +328,20 @@ export function OnboardingStep4({
                 setErrors((prev) => ({ ...prev, amount: undefined }));
               }}
               placeholder="1500"
-              className="w-full text-[15px] text-gray-800 placeholder:text-gray-300 focus:outline-none"
+              className="w-full text-[12px] text-gray-800 placeholder:text-gray-300 focus:outline-none sm:text-[13px] md:text-[15px]"
             />
           </div>
           {errors.amount && (
             <p className="mt-1 text-sm text-red-400">{errors.amount}</p>
           )}
 
-          <div className="mt-2.5 space-y-1.5">
-            <p className="flex items-center gap-1.5 text-[13px] text-gray-400">
-              <IconInfo className="h-3.5 w-3.5 shrink-0" />
+          <div className="mt-1.5 space-y-1 sm:mt-2 sm:space-y-1.5 md:mt-2.5 md:space-y-1.5">
+            <p className="flex items-center gap-1.5 text-[10px] text-gray-400 sm:text-[11px] md:text-[13px]">
+              <IconInfo className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
               You cannot change it later
             </p>
-            <p className="flex items-center gap-1.5 text-[13px] text-gray-400">
-              <IconInfo className="h-3.5 w-3.5 shrink-0" />
+            <p className="flex items-center gap-1.5 text-[10px] text-gray-400 sm:text-[11px] md:text-[13px]">
+              <IconInfo className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
               At least {MIN_AMOUNT}$
             </p>
           </div>
@@ -387,15 +352,17 @@ export function OnboardingStep4({
           type="button"
           variant="gradient_fill"
           onClick={handleCreateDream}
-          className="mt-6 w-full rounded-full py-3.5"
+          className="mt-3 w-full rounded-full py-2.5 sm:mt-4 sm:py-3 md:mt-6 md:py-3.5"
         >
           Create Dream
         </Button>
 
         {/* Divider */}
-        <div className="my-6 flex items-center gap-4">
+        <div className="my-3 flex items-center gap-2 sm:my-4 sm:gap-3 md:my-6 md:gap-4">
           <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-sm text-gray-400">or</span>
+          <span className="text-[10px] text-gray-400 sm:text-xs md:text-sm">
+            or
+          </span>
           <div className="h-px flex-1 bg-gray-200" />
         </div>
 
@@ -403,13 +370,13 @@ export function OnboardingStep4({
         <Button
           variant="gradient_outline"
           onClick={handleContinueAsDreamAngel}
-          className="w-full rounded-full py-3.5"
+          className="w-full rounded-full py-2.5 sm:py-3 md:py-3.5"
         >
           Continue as a Dream Angel
         </Button>
 
-        <p className="mt-4 flex gap-2 text-[13px] leading-relaxed text-gray-400">
-          <IconInfo className="mt-0.5 h-4 w-4 shrink-0" />
+        <p className="mt-2.5 flex gap-2 text-[10px] leading-relaxed text-gray-400 sm:mt-3 sm:text-[11px] md:mt-4 md:text-[13px]">
+          <IconInfo className="mt-0.5 h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4" />
           <span>
             A Dream Angel is a person who has not set a dream [yet]. They only
             donate to others, but accumulate dream points for any future dream,

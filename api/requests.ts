@@ -4,6 +4,9 @@ import {
   RegisterPayload,
   User,
   UpdateProfilePayload,
+  DreamDto,
+  CreateDreamDto,
+  DreamImageDto,
 } from "./request-types";
 
 // POST
@@ -19,6 +22,15 @@ export const ForgotPassword = async (email: string) => {
     email: email,
   });
 };
+
+export const CreateDream = (payload: CreateDreamDto) =>
+  api.post("/api/v1/dreams", payload);
+
+export const UploadImage = (payload: DreamImageDto) =>
+  api.post("/api/v1/dream/{dreamId}/image", payload);
+
+export const UploadImages = (payload: DreamImageDto[]) =>
+  api.post("/api/v1/dream/{dreamId}/images", payload);
 
 // GET
 

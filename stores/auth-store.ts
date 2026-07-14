@@ -22,9 +22,6 @@ export const useAuthStore = create<AuthStore>()(
         set({ accessToken, refreshToken }),
       clearTokens: () => {
         set({ accessToken: null, refreshToken: null });
-        // Also clear user data when tokens are cleared
-        const { useUserStore } = require("@/stores/user-store");
-        useUserStore.getState().clearUser();
       },
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
     }),

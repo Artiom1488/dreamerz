@@ -39,6 +39,43 @@ export interface User {
   updatedAt: string;
 }
 
+export interface DreamDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  title: string;
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  likedDreamsByUsers?: unknown[];
+  amount?: number;
+  savedCount?: number | null;
+  sharedCount?: number | null;
+  amountReceived?: number;
+  progress?: number;
+  images?: DreamImageDto[];
+  user?: User;
+  deletedAt?: string;
+  donations?: any[][];
+  isSaved: boolean;
+}
+
+// CreateDreamDto - input for creating a dream
+export interface CreateDreamDto {
+  title: string;
+  amount: number;
+}
+
+// DreamImageDto - image type used in dreams
+export interface DreamImageDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  avatarName: string;
+  name: string;
+  url?: string;
+  avatarUrl: string;
+  isMain?: boolean;
+}
+
 export interface ErrorResponseShape {
   exception?: { message?: string } | string;
 }
