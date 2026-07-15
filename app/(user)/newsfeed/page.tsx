@@ -2,15 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth-store";
+import { useUserStore } from "@/stores/user-store";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/api/requests";
 
 const NewsfeedPage = () => {
   const router = useRouter();
   const clearTokens = useAuthStore((state) => state.clearTokens);
+  const clearUser = useUserStore((state) => state.clearUser);
 
   const handleLogout = (): void => {
     clearTokens();
+    clearUser();
     router.replace("/");
   };
 

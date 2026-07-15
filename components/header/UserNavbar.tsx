@@ -1,7 +1,6 @@
-
 import Link from "next/link";
 import { LogoIconBlack } from "@/constants/social-icons";
-import SearchBar  from "@/components/core/SearchBar";
+import SearchBar from "@/components/core/SearchBar";
 import { MessageCircle, Bell } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
@@ -10,7 +9,10 @@ const Navbar = () => {
     <header className="sticky top-0 z-30 w-full border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="grid h-16 w-full grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/newsfeed" className="font-heading text-2xl font-bold tracking-tight">
+        <Link
+          href="/newsfeed"
+          className="font-heading text-2xl font-bold tracking-tight"
+        >
           <LogoIconBlack className="h-8 w-auto dark:invert" />
         </Link>
 
@@ -22,10 +24,16 @@ const Navbar = () => {
 
         {/* Auth Buttons */}
         <div className="flex items-center justify-end gap-2">
-          <Link href="/messenger" className="rounded-full border border-border bg-muted px-1.5 py-1.5 text-sm font-medium text-foreground">
+          <Link
+            href="/messenger"
+            className="rounded-full border border-border bg-muted px-1.5 py-1.5 text-sm font-medium text-foreground"
+          >
             <MessageCircle />
           </Link>
-          <Link href="/messenger" className="rounded-full border border-border bg-muted px-1.5 py-1.5 text-sm font-medium text-foreground">
+          <Link
+            href="/messenger"
+            className="rounded-full border border-border bg-muted px-1.5 py-1.5 text-sm font-medium text-foreground"
+          >
             <Bell />
           </Link>
 
@@ -46,7 +54,6 @@ const Navbar = () => {
           </div>
 
           <SidebarTrigger className="h-10 w-10 rounded-full border border-border bg-muted text-foreground hover:bg-muted/80 [&_svg]:size-5" />
-          
         </div>
       </div>
     </header>

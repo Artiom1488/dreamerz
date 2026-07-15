@@ -6,6 +6,7 @@ export interface OnboardingStep1Props {
     gender?: "MALE" | "FEMALE";
   };
   onNext: (data: OnboardingStep1Data) => void;
+  loading?: boolean;
 }
 
 export interface OnboardingStep1Data {
@@ -25,6 +26,7 @@ export interface OnboardingStep2Props {
   };
   onNext: (data: OnboardingStep2Data) => void;
   onBack: () => void;
+  loading?: boolean;
 }
 
 export interface OnboardingStep2Data {
@@ -43,6 +45,7 @@ export interface OnboardingStep3Props {
   };
   onNext: (data: OnboardingStep3Data) => void;
   onBack: () => void;
+  loading?: boolean;
 }
 
 export interface OnboardingStep3Data {
@@ -75,6 +78,7 @@ export interface OnboardingStep4Props {
   onBack: () => void;
   currentStep?: number;
   totalSteps?: number;
+  loading?: boolean;
 }
 
 // Onboarding Step 5
@@ -84,4 +88,5 @@ export interface OnboardingStep5Props {
   onBack?: () => void;
   onSubscribe?: (planId: string) => void;
   onSkip?: () => void;
+  loading?: boolean;
 }

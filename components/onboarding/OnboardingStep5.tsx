@@ -11,7 +11,7 @@ import { LogoIconBlack } from "@/constants/social-icons";
 
 function FeatureList({ features }: { features: string[] }) {
   return (
-    <ul className="mb-3 flex-1 space-y-1.5 sm:mb-4 sm:space-y-2 md:mb-6 md:space-y-2.5">
+    <ul className="mb-2 flex-1 space-y-1 sm:mb-3 sm:space-y-1.5 md:mb-4 md:space-y-2">
       {features.map((feature) => (
         <li
           key={feature}
@@ -28,12 +28,14 @@ function FeatureList({ features }: { features: string[] }) {
 function PlanCard({
   plan,
   onSubscribe,
+  disabled,
 }: {
   plan: Plan;
   onSubscribe: (id: string) => void;
+  disabled?: boolean;
 }) {
   return (
-    <div className="relative w-[140px] min-w-[140px] flex-1 snap-start sm:w-[160px] sm:min-w-[160px] md:w-[180px] md:min-w-[180px]">
+    <div className="relative w-[140px] min-w-[140px] flex-1 snap-start sm:w-[160px] sm:min-w-[160px] md:w-[220px] md:min-w-[220px] lg:w-[240px] lg:min-w-[240px]">
       {plan.popular && (
         <div className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
           most chosen
@@ -60,6 +62,7 @@ function PlanCard({
           variant="gradient_fill"
           className="w-full"
           size="sm"
+          disabled={disabled}
         >
           Subscribe
         </Button>
@@ -70,8 +73,8 @@ function PlanCard({
 
 function CustomPlanCard({ plan }: { plan: typeof customPlan }) {
   return (
-    <div className="w-[140px] min-w-[140px] flex-1 snap-start sm:w-[160px] sm:min-w-[160px] md:w-[180px] md:min-w-[180px]">
-      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-2.5 pt-4 sm:p-3 sm:pt-5 md:p-4 md:pt-7">
+    <div className="w-[140px] min-w-[140px] flex-1 snap-start sm:w-[160px] sm:min-w-[160px] md:w-[220px] md:min-w-[220px] lg:w-[240px] lg:min-w-[240px]">
+      <div className="flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-2 pt-3 sm:p-2.5 sm:pt-4 md:p-3 md:pt-5">
         <StarRow count={plan.stars} />
         <h3 className="mb-1 text-base font-indie-flower text-[#b98fd0] sm:text-lg md:text-xl">
           {plan.name}
@@ -99,12 +102,13 @@ export default function OnboardingStep5({
   onBack,
   onSubscribe,
   onSkip,
+  loading,
 }: OnboardingStep5Props) {
   return (
-    <div className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-neutral-100 px-3 py-5 sm:px-4 sm:py-6 md:py-10">
-      <div className="mx-auto max-w-6xl rounded-[28px] bg-white p-3 sm:p-4 md:p-8 lg:p-12">
+    <div className="fixed inset-0 z-40 flex flex-col items-center overflow-y-auto bg-[#efeef2] px-4 py-4 sm:px-6 sm:py-6 md:justify-start md:py-4">
+      <div className="mx-auto w-full max-w-xl space-y-4 rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:max-w-2xl sm:space-y-5 sm:p-6 md:max-w-3xl md:space-y-4 md:p-6 lg:max-w-5xl lg:p-6 xl:max-w-6xl">
         {/* Header: back button + progress rule + step counter */}
-        <div className="mb-4 flex items-center gap-2 sm:mb-6 sm:gap-3 md:mb-10 md:gap-4">
+        <div className="mb-3 flex items-center gap-2 sm:mb-4 sm:gap-3 md:mb-4 md:gap-3">
           <button
             type="button"
             onClick={onBack}
@@ -120,28 +124,29 @@ export default function OnboardingStep5({
         </div>
 
         {/* Logo mark */}
-        <div className="mb-3 flex flex-col items-center gap-1 sm:mb-4 md:mb-6">
+        <div className="mb-2 flex flex-col items-center gap-1 sm:mb-3 md:mb-3">
           <LogoIconBlack className="h-5 w-auto sm:h-6 md:h-auto" />
         </div>
 
         {/* Title + subtitle */}
-        <h1 className="mb-3 text-center font-indie-flower text-2xl text-neutral-900 sm:mb-4 sm:text-3xl md:mb-5 md:text-4xl lg:text-5xl xl:text-6xl">
+        <h1 className="mb-2 text-center font-indie-flower text-2xl text-neutral-900 sm:mb-3 sm:text-3xl md:mb-3 md:text-4xl lg:text-[2.75rem]">
           Your Dream Realization Plan
         </h1>
-        <p className="mx-auto mb-4 max-w-2xl text-center text-[12px] leading-relaxed text-slate-400 sm:mb-6 sm:text-[13px] md:mb-10 md:text-[15px]">
+        <p className="mx-auto mb-3 max-w-2xl text-center text-[12px] leading-relaxed text-slate-400 sm:mb-4 sm:text-[13px] md:mb-4 md:text-[15px]">
           Every $1 donated represents a fulfilled dream collected towards
           realizing your own dreams while boosting their visibility worldwide.
           The more you give the more your support network grows, allowing you to
           achieve your dreams faster, while funding only half.
         </p>
 
-        {/* Plan cards — horizontally scrollable so the 5th card peeks at the edge */}
-        <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2 pt-2 sm:gap-3 sm:pb-2 sm:pt-3 md:gap-4 md:pt-4">
+        {/* Plan cards — horizontally scrollable on all screen sizes, wider cards on larger screens */}
+        <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 pt-1 sm:gap-3 sm:pb-1 sm:pt-2 md:gap-4 md:overflow-x-auto md:pt-2 lg:gap-5 lg:pt-2">
           {plans.map((plan) => (
             <PlanCard
               key={plan.id}
               plan={plan}
               onSubscribe={onSubscribe ?? (() => {})}
+              disabled={loading}
             />
           ))}
           <CustomPlanCard plan={customPlan} />
@@ -151,9 +156,11 @@ export default function OnboardingStep5({
         <button
           type="button"
           onClick={onSkip}
-          className="mx-auto mt-4 flex items-center gap-1 text-sm text-sky-300 transition-colors hover:text-sky-400 hover:underline sm:mt-6 md:mt-10"
+          disabled={loading}
+          className="mx-auto mt-3 flex items-center gap-1 text-sm text-sky-300 transition-colors hover:text-sky-400 hover:underline disabled:opacity-50 sm:mt-4 md:mt-4"
         >
-          Skip for 7 days <MoveRight className="h-4 w-4" />
+          {loading ? "Please wait..." : "Skip for 7 days"}{" "}
+          <MoveRight className="h-4 w-4" />
         </button>
       </div>
     </div>

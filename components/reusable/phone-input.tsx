@@ -227,8 +227,10 @@ export function PhoneInput({
   const handleNumberChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const digitsOnly = e.target.value.replace(/\D/g, "");
-      setDigits(digitsOnly);
-      emit(country.dialCode, digitsOnly);
+      // Limit to 10 digits (most phone numbers are 10 digits or less)
+      const limitedDigits = digitsOnly.slice(0, 10);
+      setDigits(limitedDigits);
+      emit(country.dialCode, limitedDigits);
     },
     [emit, country.dialCode],
   );
@@ -275,6 +277,14 @@ export function PhoneInput({
         onBlur={onBlur}
         placeholder={placeholder}
         disabled={disabled}
+        maxLength={12}
+        onInput={(e) => {
+          const target = e.target as HTMLInputElement;
+          const digitsOnly = target.value.replace(/\D/g, "");
+          if (digitsOnly.length > 10) {
+            target.value = formattedNumber.slice(0, -1);
+          }
+        }}
         className="h-full min-w-0 flex-1 bg-transparent px-4 text-slate-600 outline-none placeholder:text-slate-400"
       />
     </div>

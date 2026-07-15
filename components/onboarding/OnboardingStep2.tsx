@@ -49,9 +49,11 @@ export function OnboardingStep2({
   initialValues,
   onNext,
   onBack,
+  loading,
 }: OnboardingStep2Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(onboardingStep2Schema),
+    mode: "onBlur",
     defaultValues: {
       email: initialValues?.email || "",
       phoneNumber: initialValues?.phoneNumber || "",
@@ -72,7 +74,7 @@ export function OnboardingStep2({
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto bg-[#efeef2] px-4 py-6 sm:px-6 sm:py-8">
-      <div className="w-full max-w-md space-y-5 rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:space-y-6 sm:p-8 md:p-10">
+      <div className="mx-auto w-full max-w-md space-y-5 rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:max-w-lg sm:space-y-6 sm:p-8 md:max-w-xl md:p-10 lg:max-w-2xl">
         {/* Back + step indicator */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
@@ -241,8 +243,9 @@ export function OnboardingStep2({
               variant="gradient_fill"
               className="w-full"
               size="lg"
+              disabled={loading}
             >
-              Continue
+              {loading ? "Please wait..." : "Continue"}
             </Button>
           </form>
         </Form>

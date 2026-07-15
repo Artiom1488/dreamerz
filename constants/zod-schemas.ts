@@ -34,7 +34,7 @@ export const onboardingStep1Schema = z.object({
 
 export const onboardingStep2Schema = z.object({
   email: z.string().email("Enter a valid email address").optional(),
-  phoneNumber: z.string().min(6, "Phone number is required"),
+  phoneNumber: z.string().min(6, "Phone number must be at least 6 characters"),
   birthDate: z.string().min(1, "Birth date is required"),
   country: z.string().min(1, "Country is required"),
   city: z.string().min(1, "City is required"),

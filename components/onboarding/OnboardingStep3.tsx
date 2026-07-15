@@ -30,6 +30,7 @@ export function OnboardingStep3({
   initialValues,
   onNext,
   onBack,
+  loading,
 }: OnboardingStep3Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [photos, setPhotos] = useState<File[]>(initialValues?.photos || []);
@@ -76,7 +77,7 @@ export function OnboardingStep3({
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto bg-[#efeef2] px-4 py-6 sm:px-6 sm:py-8">
-      <div className="w-full min-w-0 max-w-md space-y-4 overflow-hidden rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:space-y-5 sm:p-7 md:p-8">
+      <div className="mx-auto w-full min-w-0 max-w-md space-y-4 overflow-hidden rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:max-w-lg sm:space-y-5 sm:p-7 md:max-w-xl md:p-8 lg:max-w-2xl">
         {/* Back + step indicator */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
@@ -210,9 +211,9 @@ export function OnboardingStep3({
               variant="gradient_fill"
               className="w-full"
               size="lg"
-              disabled={!isValid}
+              disabled={!isValid || loading}
             >
-              Continue
+              {loading ? "Please wait..." : "Continue"}
             </Button>
           </form>
         </Form>

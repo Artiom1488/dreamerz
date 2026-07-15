@@ -58,13 +58,17 @@ export interface DreamDto {
   isSaved: boolean;
 }
 
-// CreateDreamDto - input for creating a dream
+// CreateDreamDto - input for creating a dream.
+// NOTE: backend only accepts `title` + `amount`. Step 4's form collects a
+// free-form `description`, not a title, so the orchestrator derives a title
+// from the first ~60 characters of the description before calling CreateDream.
 export interface CreateDreamDto {
   title: string;
   amount: number;
 }
 
-// DreamImageDto - image type used in dreams
+// DreamImageDto - this is the *response* shape for a dream image (what you
+// get back after upload), not what you send. Kept for typing API responses.
 export interface DreamImageDto {
   id: string;
   createdAt: string;
@@ -76,9 +80,33 @@ export interface DreamImageDto {
   isMain?: boolean;
 }
 
+// What actually gets sent when uploading dream images (real Files via
+// FormData) — distinct from DreamImageDto, which is a response shape.
+export interface UploadImagePayload {
+  dreamId: string;
+  image: File;
+}
+
+export interface UploadImagesPayload {
+  dreamId: string;
+  images: File[];
+}
+
+// Step 3 bio photos — profile images, not dream images, so there's no
+// dreamId involved.
+export interface UploadUserImagesPayload {
+  images: File[];
+}
+
 export interface ErrorResponseShape {
   exception?: { message?: string } | string;
 }
+
+export type OnboardingStatus =
+  | "WELCOME"
+  | "USER_PROFILE"
+  | "CREATE_DREAM"
+  | "COMPLETED";
 
 export interface UpdateProfilePayload {
   firstName: string;
@@ -89,5 +117,5 @@ export interface UpdateProfilePayload {
   birthday: string;
   city: string;
   country: string;
-  onboardingStatus: "WELCOME";
+  onboardingStatus: OnboardingStatus;
 }

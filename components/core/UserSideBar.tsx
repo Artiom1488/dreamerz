@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { useAuthStore } from "@/stores/auth-store";
+import { useUserStore } from "@/stores/user-store";
 import { useRouter } from "next/navigation";
 
 type MenuItem = {
@@ -64,44 +65,34 @@ const logoutButtonClasses =
 
 const Divider = () => <div className="mx-3 my-1 h-px shrink-0 bg-gray-200" />;
 
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-export interface UserSideBarUser {
-  name: string;
-  avatarUrl?: string;
-  balance?: number;
+function getInitials(firstName?: string | null, lastName?: string | null) {
+  if (!firstName && !lastName) return "?";
+  const first = firstName?.[0] || "";
+  const last = lastName?.[0] || "";
+  return (first + last).toUpperCase() || "?";
 }
 
 interface UserSideBarProps {
-  /** User data coming from the backend — name, avatar and balance. */
-  user?: UserSideBarUser;
   /** Called when the person clicks "Random Fulfill". */
   onRandomFulfill?: () => void;
-  /** Called when the person clicks "Logout". */
-  onLogout?: () => void;
 }
 
-const defaultUser: UserSideBarUser = {
-  name: "Guest",
-  avatarUrl: undefined,
-  balance: 0,
-};
+const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
+  const user = useUserStore((state) => state.user);
 
-const UserSideBar = ({
-  user = defaultUser,
-  onRandomFulfill,
-  onLogout,
-}: UserSideBarProps) => {
+  const displayName =
+    user?.firstName && user?.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user?.email || "Guest";
+
+  const avatarUrl = user?.mainImageUrl || user?.images?.[0] || undefined;
   const router = useRouter();
   const clearTokens = useAuthStore((state) => state.clearTokens);
+  const clearUser = useUserStore((state) => state.clearUser);
 
   const handleLogout = (): void => {
     clearTokens();
+    clearUser();
     router.replace("/");
   };
 
@@ -117,13 +108,13 @@ const UserSideBar = ({
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2.5">
             <Avatar className="h-9 w-9 shrink-0">
-              <AvatarImage src={user.avatarUrl} alt={user.name} />
+              <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback className="bg-muted text-sm">
-                {getInitials(user.name)}
+                {getInitials(user?.firstName, user?.lastName)}
               </AvatarFallback>
             </Avatar>
             <span className="truncate text-base font-semibold text-sidebar-foreground">
-              {user.name}
+              {displayName}
             </span>
           </div>
 
@@ -134,7 +125,7 @@ const UserSideBar = ({
               </span>
               <div className="mt-0.5 flex items-center gap-1 leading-none">
                 <span className="text-[19px] leading-[0.9] font-semibold tracking-tight text-foreground">
-                  {user.balance ?? 0}
+                  {user?.balance ?? 0}
                 </span>
                 <span className="bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)] bg-clip-text text-base leading-none text-transparent">
                   ★

@@ -18,10 +18,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  GoogleIcon,
-  LogoIconBlack,
-} from "@/constants/social-icons";
+import { GoogleIcon, LogoIconBlack } from "@/constants/social-icons";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -30,6 +27,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { loginSchema } from "@/constants/zod-schemas";
 import { useAuthStore } from "@/stores/auth-store";
+import { useUserStore } from "@/stores/user-store";
+import { getUser } from "@/api/requests";
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type ApiErrorResponse = { message?: string };
@@ -69,6 +68,7 @@ const Login = ({
 }: LoginProps) => {
   const router = useRouter();
   const setTokens = useAuthStore((state) => state.setTokens);
+  const setUser = useUserStore((state) => state.setUser);
   const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -96,17 +96,29 @@ const Login = ({
 
       setTokens(tokenPayload.accessToken, tokenPayload.refreshToken);
 
+      // Fetch and populate user store after successful login
+      try {
+        const { data: userData } = await getUser();
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to fetch user data after login:", error);
+        // Continue anyway - tokens are set, user data can be fetched later
+      }
+
       onSubmit?.(data);
       router.push("/newsfeed");
     } catch (error) {
       if (isAxiosError<ApiErrorResponse>(error)) {
-        const message = error.response?.data?.message ?? "Login failed. Please try again.";
+        const message =
+          error.response?.data?.message ?? "Login failed. Please try again.";
         setSubmitError(message);
         return;
       }
 
       setSubmitError(
-        error instanceof Error ? error.message : "Login failed. Please try again.",
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please try again.",
       );
     }
   };
@@ -158,7 +170,9 @@ const Login = ({
           <h1 className="text-4xl font-bold tracking-tight font-heading text-gradient-2">
             {title}
           </h1>
-          <p className="text-sm text-muted-foreground font-sans">{description}</p>
+          <p className="text-sm text-muted-foreground font-sans">
+            {description}
+          </p>
         </CardHeader>
 
         <CardContent className="space-y-4">

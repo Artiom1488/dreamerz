@@ -18,19 +18,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LogoIconBlack } from "@/constants/social-icons";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type FormValues = OnboardingStep1Data;
 
 export function OnboardingStep1({
   initialValues,
   onNext,
+  loading,
 }: OnboardingStep1Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(onboardingStep1Schema),
@@ -47,7 +42,7 @@ export function OnboardingStep1({
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto bg-[#efeef2] px-4 py-6 sm:px-6 sm:py-8">
-      <div className="w-full max-w-md space-y-5 rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:space-y-6 sm:p-8 md:p-10">
+      <div className="mx-auto w-full max-w-md space-y-5 rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:max-w-lg sm:space-y-6 sm:p-8 md:max-w-xl md:p-10 lg:max-w-2xl">
         {/* Step indicator */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="h-px flex-1 bg-gray-200" />
@@ -118,20 +113,18 @@ export function OnboardingStep1({
                     <FormLabel className="text-xs sm:text-sm">
                       Gender*
                     </FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="h-10 w-full rounded-lg border-0 bg-slate-100 px-3 text-slate-600 focus-visible:ring-1 focus-visible:ring-slate-300 focus-visible:ring-offset-0 sm:h-11 sm:px-4 sm:h-12">
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="z-[100]">
-                        <SelectItem value="MALE">Male</SelectItem>
-                        <SelectItem value="FEMALE">Female</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <Tabs
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        className="w-full"
+                      >
+                        <TabsList variant="line" className="w-full">
+                          <TabsTrigger value="MALE">Male</TabsTrigger>
+                          <TabsTrigger value="FEMALE">Female</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -143,8 +136,9 @@ export function OnboardingStep1({
               variant="gradient_fill"
               className="w-full"
               size="lg"
+              disabled={loading}
             >
-              Continue
+              {loading ? "Please wait..." : "Continue"}
             </Button>
           </form>
         </Form>

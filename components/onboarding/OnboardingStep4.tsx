@@ -63,6 +63,7 @@ export function OnboardingStep4({
   onBack,
   currentStep = 4,
   totalSteps = 5,
+  loading,
 }: OnboardingStep4Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<{ file: File; url: string }[]>(() =>
@@ -129,6 +130,7 @@ export function OnboardingStep4({
   }
 
   function handleCreateDream() {
+    if (loading) return;
     if (!validate()) return;
     onNext({
       photos: images.map((i) => i.file),
@@ -139,6 +141,7 @@ export function OnboardingStep4({
   }
 
   function handleContinueAsDreamAngel() {
+    if (loading) return;
     // Dream Angels skip the dream fields entirely — no photos, description,
     // or amount required.
     onNext({
@@ -150,8 +153,8 @@ export function OnboardingStep4({
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center overflow-y-auto bg-[#efefef] px-4 py-6 sm:px-6 sm:py-8">
-      <div className="w-full max-w-[520px] rounded-[28px] bg-white p-4 shadow-sm sm:p-8 md:p-10">
+    <div className="fixed inset-0 z-40 flex flex-col items-center overflow-y-auto bg-[#efeef2] px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-md space-y-5 rounded-3xl bg-white p-4 shadow-[0_4px_24px_rgba(15,15,20,0.06)] sm:max-w-lg sm:space-y-6 sm:p-8 md:max-w-xl md:p-10 lg:max-w-2xl">
         {/* Top bar: back button, progress line, step counter */}
         <div className="mb-5 flex items-center gap-2 sm:mb-6 sm:gap-3 md:mb-9 md:gap-4">
           <button
@@ -352,9 +355,10 @@ export function OnboardingStep4({
           type="button"
           variant="gradient_fill"
           onClick={handleCreateDream}
+          disabled={loading}
           className="mt-3 w-full rounded-full py-2.5 sm:mt-4 sm:py-3 md:mt-6 md:py-3.5"
         >
-          Create Dream
+          {loading ? "Please wait..." : "Create Dream"}
         </Button>
 
         {/* Divider */}
@@ -370,6 +374,7 @@ export function OnboardingStep4({
         <Button
           variant="gradient_outline"
           onClick={handleContinueAsDreamAngel}
+          disabled={loading}
           className="w-full rounded-full py-2.5 sm:py-3 md:py-3.5"
         >
           Continue as a Dream Angel
