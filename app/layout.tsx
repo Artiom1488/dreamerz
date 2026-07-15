@@ -14,6 +14,7 @@ const indieFlower = Indie_Flower({
   variable: "--font-indie-flower",
   subsets: ["latin"],
   weight: "400",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
