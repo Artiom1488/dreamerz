@@ -80,7 +80,14 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --gradient-2: linear-gradient(to right, #84FAD5 0%, #84FAD5 20%, #F5E0FF 50%, #F8ED84 80%, #F8ED84 100%);
+  --gradient-2: linear-gradient(
+    to right,
+    #84fad5 0%,
+    #84fad5 20%,
+    #f5e0ff 50%,
+    #f8ed84 80%,
+    #f8ed84 100%
+  );
 }
 
 .dark {
@@ -147,9 +154,9 @@
     color: transparent;
     background-image: linear-gradient(
       135deg,
-      #84FAD5 0%,
-      #EBBFFF 50%,
-      #F6EC85 100%
+      #84fad5 0%,
+      #ebbfff 50%,
+      #f6ec85 100%
     );
     background-clip: text;
     -webkit-background-clip: text;
@@ -195,7 +202,9 @@
   background-origin: border-box;
   background-clip: border-box;
   -webkit-text-fill-color: currentColor;
-  transition: color 0.2s ease, background-image 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-image 0.2s ease;
 }
 
 .btn-gradient-outline::before {
@@ -204,7 +213,12 @@
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background-image: linear-gradient(135deg, #84FAD5 0%, #EBBFFF 50%, #F6EC85 100%);
+  background-image: linear-gradient(
+    135deg,
+    #84fad5 0%,
+    #ebbfff 50%,
+    #f6ec85 100%
+  );
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -215,13 +229,22 @@
 }
 
 .btn-gradient-outline:hover {
-  background-image: linear-gradient(135deg, #84FAD5 0%, #EBBFFF 50%, #F6EC85 100%);
+  background-image: linear-gradient(
+    135deg,
+    #84fad5 0%,
+    #ebbfff 50%,
+    #f6ec85 100%
+  );
 }
 
 /* globals.css */
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 .animate-marquee {
   animation: marquee linear infinite;
@@ -230,5 +253,7 @@
   animation-play-state: paused;
 }
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee { animation: none; }
+  .animate-marquee {
+    animation: none;
+  }
 }

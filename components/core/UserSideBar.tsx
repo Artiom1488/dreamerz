@@ -51,29 +51,19 @@ type MenuItem = {
 
 const mainMenuItems: MenuItem[] = [
   { title: "Explore", icon: Compass, href: "/newsfeed" },
-
   { title: "Messenger", icon: Send, href: "/messenger", badge: "New" },
-
   { title: "Saved Posts", icon: Bookmark, href: "/saved-posts", badge: "New" },
-
   { title: "Dashboard", icon: SlidersHorizontal, href: "/dashboard" },
-
   { title: "My profile", icon: CircleUserRound, href: "/profile" },
-
   { title: "Pricing page", icon: BadgeDollarSign, href: "/pricing" },
 ];
 
 const secondaryMenuItems: MenuItem[] = [
   { title: "About us", icon: Users, href: "/about-us" },
-
   { title: "How it works", icon: Info, href: "/how-it-works" },
-
   { title: "FAQ", icon: BookOpen, href: "/faq" },
-
   { title: "Leave Feedback", icon: MessagesSquare, href: "/feedback" },
-
   { title: "Terms and Conditions", icon: FileSignature, href: "/terms" },
-
   { title: "Privacy Policy", icon: Lock, href: "/privacy" },
 ];
 
@@ -87,11 +77,8 @@ const Divider = () => <div className="mx-3 my-1 h-px shrink-0 bg-gray-200" />;
 
 function getInitials(firstName?: string | null, lastName?: string | null) {
   if (!firstName && !lastName) return "?";
-
   const first = firstName?.[0] || "";
-
   const last = lastName?.[0] || "";
-
   return (first + last).toUpperCase() || "?";
 }
 
@@ -103,44 +90,32 @@ interface UserSideBarProps {
 
 const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
   const user = useUserStore((state) => state.user);
-
   const router = useRouter();
-
   const pathname = usePathname();
-
   const { setOpen } = useSidebar();
-
   const clearTokens = useAuthStore((state) => state.clearTokens);
-
   const clearUser = useUserStore((state) => state.clearUser);
-
   const displayName =
     user?.firstName && user?.lastName
       ? `${user.firstName} ${user.lastName}`
       : user?.email || "Guest";
-
   const avatarUrl =
     user?.mainImageUrl || user?.images?.[0]
       ? `${process.env.NEXT_PUBLIC_API_URL}${(user?.mainImageUrl || user?.images?.[0]).startsWith("/") ? (user?.mainImageUrl || user?.images?.[0]).slice(1) : user?.mainImageUrl || user?.images?.[0]}`
       : undefined;
-
+  const profileHref = user?.id ? `/profile/${user.id}` : "/profile";
   const handleLogout = (): void => {
     clearTokens();
-
     clearUser();
-
     router.replace("/");
   };
 
   const handleMenuClick = (href: string) => {
-    if (pathname === href) {
-      // Already on this page, just close sidebar
-
+    const actualHref = href === "/profile" ? profileHref : href;
+    if (pathname === actualHref) {
       setOpen(false);
     } else {
-      // Navigate to the page
-
-      router.push(href);
+      router.push(actualHref);
       setOpen(false);
     }
   };
@@ -158,18 +133,16 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
           <div
             className="flex min-w-0 items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => {
-              router.push("/profile");
+              router.push(profileHref);
               setOpen(false);
             }}
           >
             <Avatar className="h-9 w-9 shrink-0">
               <AvatarImage src={avatarUrl} alt={displayName} />
-
               <AvatarFallback className="bg-muted text-sm">
                 {getInitials(user?.firstName, user?.lastName)}
               </AvatarFallback>
             </Avatar>
-
             <span className="truncate text-base font-semibold text-sidebar-foreground">
               {displayName}
             </span>
@@ -180,12 +153,10 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
               <span className="text-[11px] leading-none font-medium text-muted-foreground">
                 Balance
               </span>
-
               <div className="mt-0.5 flex items-center gap-1 leading-none">
                 <span className="text-[19px] leading-[0.9] font-semibold tracking-tight text-foreground">
                   {user?.balance ?? 0}
                 </span>
-
                 <span className="bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)] bg-clip-text text-base leading-none text-transparent">
                   ★
                 </span>
@@ -219,9 +190,7 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
                   >
                     <div className="flex items-center gap-3">
                       <item.icon className="h-4 w-4 shrink-0" />
-
                       <span className="truncate text-sm">{item.title}</span>
-
                       {item.badge && (
                         <Badge
                           variant="dreamangel"
@@ -251,7 +220,6 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
                   >
                     <div className="flex items-center gap-3">
                       <item.icon className="h-4 w-4 shrink-0" />
-
                       <span className="truncate text-sm">{item.title}</span>
                     </div>
                   </SidebarMenuButton>
@@ -274,7 +242,6 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
                     className="flex items-center gap-3"
                   >
                     <LogOut className="h-4 w-4 shrink-0" />
-
                     <span className="text-sm">Logout</span>
                   </button>
                 </SidebarMenuButton>

@@ -17,6 +17,7 @@ type RetriableConfig = {
   _retry?: boolean;
   url?: string;
   headers?: Record<string, string>;
+  _skipRefresh?: boolean;
 };
 
 const notify = (message: string): void => {
@@ -104,7 +105,12 @@ api.interceptors.response.use(
     }
 
     if (status === 401) {
-      if (!refreshToken || originalConfig._retry) {
+      // Skip refresh logic for the refresh endpoint itself to prevent infinite loop
+      if (
+        originalConfig._skipRefresh ||
+        !refreshToken ||
+        originalConfig._retry
+      ) {
         clearTokens();
         setBgLoader(true);
         if (typeof window !== "undefined") {
@@ -118,7 +124,10 @@ api.interceptors.response.use(
         originalConfig._retry = true;
 
         const { getRefreshToken } = await import("./requests");
-        const refreshResponse = await getRefreshToken();
+        // Mark the refresh request to skip its own refresh logic
+        const refreshResponse = await api.get("/api/v1/auth/refresh", {
+          _skipRefresh: true,
+        } as any);
         const data = refreshResponse.data as TokenPair;
         setTokens(data.accessToken, data.refreshToken);
 

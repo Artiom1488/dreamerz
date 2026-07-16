@@ -38,7 +38,7 @@ const Navbar = () => {
       : undefined;
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-30 w-full border-b border-border bg-background">
       <div className="grid h-16 w-full grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
 
@@ -102,6 +102,7 @@ const Navbar = () => {
           </Avatar>
         </div>
       </div>
+      <div className="h-0.5 w-full bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)]" />
     </header>
   );
 };

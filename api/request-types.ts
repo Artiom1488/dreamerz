@@ -22,7 +22,7 @@ export interface User {
   birthday: string | null;
   city: string | null;
   country: string | null;
-  coverImage: string | null;
+  coverImage: string | CoverImageDto | null;
   createdAt: string;
   description: string | null;
   gender: string | null;
@@ -65,6 +65,22 @@ export interface DreamDto {
 export interface CreateDreamDto {
   title: string;
   amount: number;
+}
+
+// CoverImageDto - the *response* shape for a cover image, returned from the
+// upload endpoint and nested on `User.coverImage`. `position` is a
+// vertical pixel offset used as the CSS `object-position` Y value, saved via
+// PATCH /api/v1/user/cover/image/{imageId}.
+export interface CoverImageDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  avatarName: string;
+  name: string;
+  url?: string;
+  avatarUrl: string;
+  isMain?: boolean;
+  position?: number;
 }
 
 // DreamImageDto - this is the *response* shape for a dream image (what you
