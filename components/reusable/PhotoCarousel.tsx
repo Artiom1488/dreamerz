@@ -3,7 +3,7 @@
 
 import { useId, useState } from "react";
 import Image from "next/image";
-import { ChevronRight, ImageIcon, Plus, X } from "lucide-react";
+import { ChevronRight, ImageIcon, Plus, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -159,7 +159,7 @@ export function PhotoCarousel({
                         onClick={(e) => handleDelete(e, image.id!)}
                         className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-red-500 text-white shadow-lg hover:bg-red-600 cursor-pointer"
                       >
-                        <X className="h-5 w-5" />
+                        <Trash2 className="h-5 w-5" />
                       </span>
                     </div>
                   )}

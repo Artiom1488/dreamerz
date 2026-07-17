@@ -115,6 +115,7 @@ export default function HisDream({
             uploadPhoto={isOwnProfile ? handleUploadPhotos : undefined}
             deletePhoto={isOwnProfile ? handleDeleteDreamPhoto : undefined}
             onUploadSuccess={onRefresh}
+            showViewAllButton={false}
           />
         </CardContent>
       </Card>

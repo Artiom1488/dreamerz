@@ -1,21 +1,33 @@
 import Link from "next/link";
+import { useState } from "react";
 
 import { LogoIconBlack } from "@/constants/social-icons";
 
 import SearchBar from "@/components/core/SearchBar";
 
-import { MessageCircle, Bell } from "lucide-react";
+import { MessageCircle, Bell, Search, Send } from "lucide-react";
 
 import { useSidebar } from "@/components/ui/sidebar";
 
 import { useUserStore } from "@/stores/user-store";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Navbar = () => {
   const user = useUserStore((state) => state.user);
+  const isMobile = useIsMobile();
+  const [searchDrawerOpen, setSearchDrawerOpen] = useState(false);
 
-  const { setOpen } = useSidebar();
+  const { setOpen, setOpenMobile } = useSidebar();
 
   const getInitials = (firstName?: string | null, lastName?: string | null) => {
     if (!firstName && !lastName) return "?";
@@ -41,7 +53,6 @@ const Navbar = () => {
     <header className="sticky top-0 z-30 w-full border-b border-border bg-background">
       <div className="grid h-16 w-full grid-cols-[auto_1fr_auto] items-center gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-
         <Link
           href="/newsfeed"
           className="font-heading text-2xl font-bold tracking-tight"
@@ -49,58 +60,123 @@ const Navbar = () => {
           <LogoIconBlack className="h-8 w-auto dark:invert" />
         </Link>
 
-        <div className="flex justify-center px-2">
-          <div className="w-full max-w-[380px]">
-            <SearchBar />
-          </div>
-        </div>
-
-        {/* Auth Buttons */}
-
-        <div className="flex items-center justify-end gap-2">
-          <Link
-            href="/messenger"
-            className="rounded-full border border-border bg-muted px-1.5 py-1.5 text-sm font-medium text-foreground"
-          >
-            <MessageCircle />
-          </Link>
-
-          <Link
-            href="/messenger"
-            className="rounded-full border border-border bg-muted px-1.5 py-1.5 text-sm font-medium text-foreground"
-          >
-            <Bell />
-          </Link>
-
-          <div className="h-10 w-[118px] rounded-[12px] bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)] p-[2.5px]">
-            <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[10px] bg-muted px-2 text-center">
-              <span className="text-[11px] leading-none font-medium text-muted-foreground">
-                Balance
-              </span>
-
-              <div className="mt-0.5 flex items-center gap-1 leading-none">
-                <span className="text-[19px] leading-[0.9] font-semibold tracking-tight text-foreground">
-                  {user?.balance ?? 0}
-                </span>
-
-                <span className="bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)] bg-clip-text text-base leading-none text-transparent">
-                  ★
-                </span>
-              </div>
+        {/* Search Bar - hidden on mobile */}
+        {!isMobile && (
+          <div className="flex justify-center px-2">
+            <div className="w-full max-w-[380px]">
+              <SearchBar />
             </div>
           </div>
+        )}
 
-          <Avatar
-            className="h-10 w-10 cursor-pointer rounded-full border border-border hover:bg-muted/80"
-            onClick={() => setOpen(true)}
-          >
-            <AvatarImage src={avatarUrl} alt={displayName} />
+        {/* Desktop: Auth Buttons */}
+        {!isMobile ? (
+          <div className="flex items-center justify-end gap-2">
+            <Link
+              href="/messenger"
+              className="rounded-full border border-border bg-muted px-1.5 py-1.5 text-sm font-medium text-foreground"
+            >
+              <MessageCircle />
+            </Link>
 
-            <AvatarFallback className="bg-muted">
-              {getInitials(user?.firstName, user?.lastName)}
-            </AvatarFallback>
-          </Avatar>
-        </div>
+            <Link
+              href="/messenger"
+              className="rounded-full border border-border bg-muted px-1.5 py-1.5 text-sm font-medium text-foreground"
+            >
+              <Bell />
+            </Link>
+
+            <div className="h-10 w-[118px] rounded-[12px] bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)] p-[2.5px]">
+              <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[10px] bg-muted px-2 text-center">
+                <span className="text-[11px] leading-none font-medium text-muted-foreground">
+                  Balance
+                </span>
+
+                <div className="mt-0.5 flex items-center gap-1 leading-none">
+                  <span className="text-[19px] leading-[0.9] font-semibold tracking-tight text-foreground">
+                    {user?.balance ?? 0}
+                  </span>
+
+                  <span className="bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)] bg-clip-text text-base leading-none text-transparent">
+                    ★
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <Avatar
+              className="h-10 w-10 cursor-pointer rounded-full border border-border hover:bg-muted/80"
+              onClick={() => setOpen(true)}
+            >
+              <AvatarImage src={avatarUrl} alt={displayName} />
+
+              <AvatarFallback className="bg-muted">
+                {getInitials(user?.firstName, user?.lastName)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        ) : (
+          /* Mobile: Icons and Avatar */
+          <div className="flex items-center justify-end gap-2">
+            <Drawer
+              open={searchDrawerOpen}
+              onOpenChange={setSearchDrawerOpen}
+              direction="top"
+            >
+              <DrawerTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-full border border-border bg-muted"
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Search</DrawerTitle>
+                </DrawerHeader>
+                <div className="px-4 pb-4">
+                  <SearchBar />
+                </div>
+              </DrawerContent>
+            </Drawer>
+
+            <Link href="/messenger">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full border border-border bg-muted"
+              >
+                <Send className="h-5 w-5" />
+              </Button>
+            </Link>
+
+            <Link href="/messenger">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full border border-border bg-muted"
+              >
+                <Bell className="h-5 w-5" />
+              </Button>
+            </Link>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-full border border-border p-0"
+              onClick={() => setOpenMobile(true)}
+            >
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={avatarUrl} alt={displayName} />
+                <AvatarFallback className="bg-muted">
+                  {getInitials(user?.firstName, user?.lastName)}
+                </AvatarFallback>
+              </Avatar>
+            </Button>
+          </div>
+        )}
       </div>
       <div className="h-0.5 w-full bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)]" />
     </header>

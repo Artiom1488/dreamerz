@@ -92,7 +92,7 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
   const user = useUserStore((state) => state.user);
   const router = useRouter();
   const pathname = usePathname();
-  const { setOpen } = useSidebar();
+  const { setOpen, setOpenMobile } = useSidebar();
   const clearTokens = useAuthStore((state) => state.clearTokens);
   const clearUser = useUserStore((state) => state.clearUser);
   const displayName =
@@ -114,9 +114,11 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
     const actualHref = href === "/profile" ? profileHref : href;
     if (pathname === actualHref) {
       setOpen(false);
+      setOpenMobile(false);
     } else {
       router.push(actualHref);
       setOpen(false);
+      setOpenMobile(false);
     }
   };
 
