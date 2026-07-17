@@ -6,9 +6,12 @@ import {
   UpdateProfilePayload,
   DreamDto,
   CreateDreamDto,
+  UpdateDreamDto,
   UploadImagePayload,
   UploadImagesPayload,
   UploadUserImagesPayload,
+  PaginatedResponse,
+  GetUserDreamsParams,
 } from "./request-types";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -28,6 +31,11 @@ export const ForgotPassword = async (email: string) => {
 
 export const CreateDream = (payload: CreateDreamDto) =>
   api.post<DreamDto>("/api/v1/dreams", payload);
+
+export const updateDream = (
+  dreamId: string,
+  payload: Partial<UpdateDreamDto>,
+) => api.patch<DreamDto>(`/api/v1/dreams/${dreamId}`, payload);
 
 // Real file uploads
 export const UploadImage = ({ dreamId, image }: UploadImagePayload) => {
@@ -78,6 +86,19 @@ export const getUser = () => api.get<User>("/api/v1/auth/profile");
 export const getUserById = (userId: string) =>
   api.get<User>(`/api/v1/users/${userId}`);
 
+// Logged-in user's dreams, paginated (defaults match the API: newest first, page 1, 10 per page)
+export const getUserDreams = (params?: GetUserDreamsParams) =>
+  api.get<PaginatedResponse<DreamDto>>("/api/v1/auth/profile/dreams", {
+    params,
+  });
+
+// Convenience helper: just the single most recently created dream.
+// Relies on order=DESC + take=1 rather than pulling a full page and slicing client-side.
+export const getLatestDream = async (): Promise<DreamDto | null> => {
+  const { data } = await getUserDreams({ order: "DESC", page: 1, take: 1 });
+  return data.results[0] ?? null;
+};
+
 // PATCH
 export const updateUser = (payload: Partial<UpdateProfilePayload>) =>
   api.patch<User>("/api/v1/auth/profile", payload);
@@ -91,4 +112,12 @@ export const UpdateCoverImagePosition = (imageId: string, position: number) =>
 
 export const DeleteCoverImage = (imageId: string) => {
   return api.delete(`/api/v1/user/cover/image/${imageId}`);
+};
+
+export const DeleteUserImage = (imageId: string) => {
+  return api.delete(`/api/v1/user/image/${imageId}`);
+};
+
+export const DeleteDreamImage = (dreamId: string, imageId: string) => {
+  return api.delete(`/api/v1/dream/${dreamId}/image/${imageId}`);
 };

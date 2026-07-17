@@ -8,11 +8,14 @@ import {
   UploadCoverImage,
   DeleteCoverImage,
   UpdateCoverImagePosition,
+  getUserDreams,
 } from "@/api/requests";
 
-import { User } from "@/api/request-types";
+import { User, DreamDto } from "@/api/request-types";
 
 import { Button } from "@/components/ui/button";
+import HisDream from "@/components/profile-components/His-dreams";
+import About from "@/components/profile-components/About";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -45,16 +48,46 @@ const UserProfile = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [dreams, setDreams] = useState<DreamDto[]>([]);
+  const [dreamsLoading, setDreamsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isRepositioning, setIsRepositioning] = useState(false);
   const [draftPosition, setDraftPosition] = useState(0);
   const [savingPosition, setSavingPosition] = useState(false);
   const [minOffset, setMinOffset] = useState(0);
+  const [positionPercentage, setPositionPercentage] = useState(0);
   const frameRef = useRef<HTMLDivElement>(null);
   const coverImgRef = useRef<HTMLImageElement>(null);
   const dragState = useRef<{ startY: number; startPosition: number } | null>(
     null,
   );
+
+  const resolveAssetUrl = (path?: string | null | any) => {
+    if (!path) return null;
+    const urlString =
+      typeof path === "object" ? path.url || path.avatarUrl : path;
+    if (!urlString) return null;
+    if (typeof urlString !== "string") return null;
+    if (urlString.startsWith("http")) return urlString;
+    const base = process.env.NEXT_PUBLIC_API_URL ?? "";
+    return `${base}${urlString.startsWith("/") ? urlString.slice(1) : urlString}`;
+  };
+
+  const refreshUser = useCallback(async () => {
+    try {
+      let response;
+      // If viewing own profile, use getUser(), otherwise use getUserById
+      if (currentUser?.id === userId) {
+        response = await getUser();
+      } else {
+        response = await getUserById(userId);
+      }
+      setUser(response.data);
+    } catch (error) {
+      setError("Failed to fetch user data");
+      console.error("Error fetching user data:", error);
+    }
+  }, [userId]);
 
   const recomputeMinOffset = useCallback(() => {
     const frame = frameRef.current;
@@ -65,14 +98,45 @@ const UserProfile = () => {
     setMinOffset(-Math.max(scaledHeight - frame.clientHeight, 0));
   }, []);
 
+  const recomputePositionPercentage = useCallback(() => {
+    const frame = frameRef.current;
+    const img = coverImgRef.current;
+    const coverImageObj =
+      user?.coverImage && typeof user.coverImage !== "string"
+        ? user.coverImage
+        : null;
+    if (
+      !frame ||
+      !img ||
+      !img.naturalWidth ||
+      !img.naturalHeight ||
+      !coverImageObj
+    )
+      return;
+    const savedPosition = -(coverImageObj.position ?? 0);
+    const scale = frame.clientWidth / img.naturalWidth;
+    const scaledHeight = img.naturalHeight * scale;
+    const maxOffset = scaledHeight - frame.clientHeight;
+    if (maxOffset <= 0) {
+      setPositionPercentage(0);
+      return;
+    }
+    const percentage = Math.abs(savedPosition) / maxOffset;
+    setPositionPercentage(Math.min(1, Math.max(0, percentage)));
+  }, [user?.coverImage]);
+
   useEffect(() => {
     const frame = frameRef.current;
     if (!frame) return;
     recomputeMinOffset();
-    const observer = new ResizeObserver(recomputeMinOffset);
+    recomputePositionPercentage();
+    const observer = new ResizeObserver(() => {
+      recomputeMinOffset();
+      recomputePositionPercentage();
+    });
     observer.observe(frame);
     return () => observer.disconnect();
-  }, [recomputeMinOffset]);
+  }, [recomputeMinOffset, recomputePositionPercentage]);
 
   const navItems = getNavItems(user?.gender);
 
@@ -102,7 +166,33 @@ const UserProfile = () => {
     if (userId) {
       fetchUserData();
     }
-  }, [userId, currentUser]);
+  }, [userId]);
+
+  useEffect(() => {
+    const fetchDreams = async () => {
+      if (activeTab === "dream" && userId && dreams.length === 0) {
+        setDreamsLoading(true);
+        try {
+          const { data } = await getUserDreams({ page: 1, take: 10 });
+          setDreams(data.results);
+        } catch (error) {
+          console.error("Error fetching dreams:", error);
+        } finally {
+          setDreamsLoading(false);
+        }
+      }
+    };
+    fetchDreams();
+  }, [activeTab, userId, dreams.length]);
+
+  const handleRefreshDreams = async () => {
+    try {
+      const { data } = await getUserDreams({ page: 1, take: 10 });
+      setDreams(data.results);
+    } catch (error) {
+      console.error("Error refreshing dreams:", error);
+    }
+  };
 
   const handleUploadClick = () => {
     if (user?.coverImage) {
@@ -261,6 +351,25 @@ const UserProfile = () => {
   const savedPosition = -(coverImageObj?.position ?? 0);
   const displayPosition = isRepositioning ? draftPosition : savedPosition;
   const clampedPosition = Math.min(0, Math.max(minOffset, displayPosition));
+
+  const frame = frameRef.current;
+  const img = coverImgRef.current;
+  let responsivePosition = clampedPosition;
+  if (
+    !isRepositioning &&
+    frame &&
+    img &&
+    img.naturalWidth &&
+    img.naturalHeight
+  ) {
+    const scale = frame.clientWidth / img.naturalWidth;
+    const scaledHeight = img.naturalHeight * scale;
+    const maxOffset = scaledHeight - frame.clientHeight;
+    if (maxOffset > 0) {
+      responsivePosition = -(positionPercentage * maxOffset);
+    }
+  }
+
   const isOwnProfile = currentUser?.id === userId;
 
   return (
@@ -295,7 +404,7 @@ const UserProfile = () => {
               draggable={false}
               onLoad={recomputeMinOffset}
               className="pointer-events-none h-full w-full object-cover"
-              style={{ objectPosition: `50% ${clampedPosition}px` }}
+              style={{ objectPosition: `50% ${responsivePosition}px` }}
             />
 
             {isRepositioning && (
@@ -458,7 +567,44 @@ const UserProfile = () => {
         </div>
       </div>
 
-      {activeTab && (
+      {activeTab === "dream" ? (
+        <div className="px-4 py-8 sm:px-6 lg:px-8">
+          {dreamsLoading ? (
+            <div className="text-center text-muted-foreground">
+              Loading dreams...
+            </div>
+          ) : dreams.length > 0 ? (
+            dreams.map((dream) => (
+              <HisDream
+                key={dream.id}
+                dream={dream}
+                currentUserAvatarUrl={
+                  resolveAssetUrl(currentUser?.mainImageUrl) ||
+                  resolveAssetUrl(currentUser?.images?.[0])
+                }
+                isOwnProfile={currentUser?.id === userId}
+                onRefresh={handleRefreshDreams}
+                onEditPhotos={() => setEditModalOpen(true)}
+                onEditDetails={() => setEditModalOpen(true)}
+              />
+            ))
+          ) : (
+            <div className="text-center text-muted-foreground">
+              No dreams yet
+            </div>
+          )}
+        </div>
+      ) : activeTab === "about" ? (
+        <div className="px-4 py-8 sm:px-6 lg:px-8">
+          {user ? (
+            <About user={user} onRefresh={refreshUser} />
+          ) : (
+            <div className="text-center text-muted-foreground">
+              Loading user info...
+            </div>
+          )}
+        </div>
+      ) : activeTab ? (
         <div className="px-4 py-8 sm:px-6 lg:px-8">
           <div className="text-center text-muted-foreground">
             <p>
@@ -467,8 +613,12 @@ const UserProfile = () => {
             </p>
           </div>
         </div>
-      )}
-      <EditProfileModal open={editModalOpen} onOpenChange={setEditModalOpen} />
+      ) : null}
+      <EditProfileModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onDreamsRefresh={handleRefreshDreams}
+      />
     </div>
   );
 };

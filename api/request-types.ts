@@ -67,6 +67,12 @@ export interface CreateDreamDto {
   amount: number;
 }
 
+// UpdateDreamDto - input for updating a dream.
+export interface UpdateDreamDto {
+  title?: string;
+  amount?: number;
+}
+
 // CoverImageDto - the *response* shape for a cover image, returned from the
 // upload endpoint and nested on `User.coverImage`. `position` is a
 // vertical pixel offset used as the CSS `object-position` Y value, saved via
@@ -134,4 +140,27 @@ export interface UpdateProfilePayload {
   city: string;
   country: string;
   onboardingStatus: OnboardingStatus;
+}
+
+// --- Pagination (GET /api/v1/auth/profile/dreams and similar list endpoints) ---
+
+export interface PaginatedMeta {
+  page: number;
+  take: number;
+  itemCount: number;
+  pageCount: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  results: T[];
+  meta: PaginatedMeta;
+}
+
+export interface GetUserDreamsParams {
+  order?: "ASC" | "DESC";
+  page?: number;
+  take?: number;
+  dreamStatus?: DreamDto["status"];
 }

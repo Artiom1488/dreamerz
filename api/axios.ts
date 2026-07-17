@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import type { ErrorResponseShape, TokenPair } from "./request-types";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUiStore } from "@/stores/ui-store";
+import { useUserStore } from "@/stores/user-store";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -123,13 +124,20 @@ api.interceptors.response.use(
       try {
         originalConfig._retry = true;
 
-        const { getRefreshToken } = await import("./requests");
-        // Mark the refresh request to skip its own refresh logic
+        // Call refresh endpoint with refresh token in authorization header
         const refreshResponse = await api.get("/api/v1/auth/refresh", {
+          headers: {
+            Authorization: `Bearer ${refreshToken}`,
+          },
           _skipRefresh: true,
         } as any);
         const data = refreshResponse.data as TokenPair;
         setTokens(data.accessToken, data.refreshToken);
+
+        // Refresh user data after successful token refresh
+        const { getUser } = await import("./requests");
+        const userResponse = await getUser();
+        useUserStore.getState().setUser(userResponse.data);
 
         originalConfig.headers = originalConfig.headers ?? {};
         originalConfig.headers.authorization = `Bearer ${data.accessToken}`;
