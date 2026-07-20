@@ -39,6 +39,10 @@ import { useRouter, usePathname } from "next/navigation";
 
 import { useSidebar } from "@/components/ui/sidebar";
 
+import { useState } from "react";
+
+import LeaveFeedback from "@/components/reusable/LeaveFeedback";
+
 type MenuItem = {
   title: string;
 
@@ -62,7 +66,7 @@ const secondaryMenuItems: MenuItem[] = [
   { title: "About us", icon: Users, href: "/about-us" },
   { title: "How it works", icon: Info, href: "/how-it-works" },
   { title: "FAQ", icon: BookOpen, href: "/faq" },
-  { title: "Leave Feedback", icon: MessagesSquare, href: "/feedback" },
+  { title: "Leave Feedback", icon: MessagesSquare, href: "" },
   { title: "Terms and Conditions", icon: FileSignature, href: "/terms" },
   { title: "Privacy Policy", icon: Lock, href: "/privacy" },
 ];
@@ -95,6 +99,7 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
   const { setOpen, setOpenMobile } = useSidebar();
   const clearTokens = useAuthStore((state) => state.clearTokens);
   const clearUser = useUserStore((state) => state.clearUser);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const displayName =
     user?.firstName && user?.lastName
       ? `${user.firstName} ${user.lastName}`
@@ -111,6 +116,12 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
   };
 
   const handleMenuClick = (href: string) => {
+    if (href === "") {
+      setIsFeedbackOpen(true);
+      setOpen(false);
+      setOpenMobile(false);
+      return;
+    }
     const actualHref = href === "/profile" ? profileHref : href;
     if (pathname === actualHref) {
       setOpen(false);
@@ -252,6 +263,7 @@ const UserSideBar = ({ onRandomFulfill }: UserSideBarProps) => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <LeaveFeedback open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen} />
     </Sidebar>
   );
 };
