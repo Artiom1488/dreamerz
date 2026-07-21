@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Indie_Flower } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
-import { QueryClientProviderWrapper } from "@/components/providers/query-client-provider";
+import { QueryClientProviderWrapper } from "@/api/query-client-provider";
 
 import "./globals.css";
 

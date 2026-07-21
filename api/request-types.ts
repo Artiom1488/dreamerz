@@ -164,3 +164,126 @@ export interface GetUserDreamsParams {
   take?: number;
   dreamStatus?: DreamDto["status"];
 }
+
+export interface GetUserDreamsByUserIdParams {
+  order?: "ASC" | "DESC";
+  page?: number;
+  take?: number;
+  dreamStatus?: DreamDto["status"];
+}
+
+// CharityImageDto - similar to DreamImageDto but for charity images
+export interface CharityImageDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  avatarName: string;
+  name: string;
+  url?: string;
+  avatarUrl: string;
+  isMain?: boolean;
+  charityId: string;
+}
+
+// SummaryUserDto - the compact user shape embedded throughout feed/charity
+// responses (as `user`, `contributor`, likers, etc.) — not the full User DTO.
+export interface SummaryUserDto {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  gender: "MALE" | "FEMALE" | null;
+  role: string;
+  mainImageUrl: string | null;
+  coverImage?: CoverImageDto;
+  activeAt: string | null;
+  socketId: string | null;
+}
+
+// CharityDto - charity dream response shape
+export interface CharityDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  title: string;
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  description: string;
+  amount: number;
+  amountReceived: number;
+  images: CharityImageDto[];
+  user: SummaryUserDto;
+  deletedAt: string | null;
+  likedCharitiesByUsers: SummaryUserDto[];
+  savedCount: number | null;
+  sharedCount: number | null;
+  isSaved: boolean;
+}
+
+// --- News feed (GET /api/v1/news-feeds) ---
+
+// NewsFeedDreamDto - the embedded dream summary on a news feed item.
+// Same shape as DreamDto, but `donations` here is a plain count, not the
+// array shape seen on DreamDto elsewhere.
+export interface NewsFeedDreamDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  title: string;
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  likedDreamsByUsers: SummaryUserDto[];
+  amount: number;
+  amountReceived: number;
+  progress: number;
+  images: DreamImageDto[];
+  donations: number;
+  savedCount: number | null;
+  sharedCount: number | null;
+}
+
+// DreamAngelDto - donor/"angel" attribution attached to DREAM-type feed items.
+export interface DreamAngelDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  donationCount: string;
+  userId: string;
+  user: SummaryUserDto;
+}
+
+export type NewsFeedItemType =
+  | "DREAM"
+  | "FULFILL_DONATION"
+  | "SAINT_DREAMER"
+  | "CHARITY"
+  | "WING_DONATION";
+
+// NewsFeedItemDto - a single entry in the news feed. Several fields are only
+// populated depending on `type` (e.g. `contributor`/`contributorId` for
+// FULFILL_DONATION/SAINT_DREAMER, `dreamAngel` for DREAM, `wingDonation` for
+// WING_DONATION) — left optional/nullable rather than modeled as a union
+// since the API returns all keys regardless of type.
+export interface NewsFeedItemDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  type: NewsFeedItemType;
+  user: SummaryUserDto;
+  newsFeedDream: NewsFeedDreamDto | null;
+  dreamId: string | null;
+  contributor?: SummaryUserDto | null;
+  contributorId: string | null;
+  charityId: string | null;
+  dreamAngel?: DreamAngelDto | null;
+  dreamAngelId: string | null;
+  wingDonation?: unknown | null;
+  wingDonationId: string | null;
+  title: string | null;
+  savedCount: number | null;
+  sharedCount: number | null;
+  isSaved: boolean;
+}
+
+export interface GetNewsFeedsParams {
+  order?: "ASC" | "DESC";
+  page?: number;
+  take?: number;
+}

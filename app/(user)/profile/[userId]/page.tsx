@@ -6,6 +6,7 @@ import {
   useUser,
   useUserById,
   useUserDreams,
+  useUserDreamsByUserId,
   useUploadCoverImage,
   useDeleteCoverImage,
   useUpdateCoverImagePosition,
@@ -63,9 +64,25 @@ const UserProfile = () => {
     isLoading: loading,
     error: userError,
   } = currentUser?.id === userId ? useUser() : useUserById(userId);
-  const { data: dreamsData, isLoading: dreamsLoading } = useUserDreams(
+
+  // Determine if viewing own profile
+  const isOwnProfile = currentUser?.id === userId;
+
+  // Fetch dreams based on whether viewing own profile or another user's profile
+  const ownDreamsQuery = useUserDreams(
+    isOwnProfile && activeTab === "dream" ? { page: 1, take: 10 } : undefined,
+  );
+  const otherUserDreamsQuery = useUserDreamsByUserId(
+    !isOwnProfile ? userId : "",
     activeTab === "dream" ? { page: 1, take: 10 } : undefined,
   );
+
+  const dreamsData = isOwnProfile
+    ? ownDreamsQuery.data
+    : otherUserDreamsQuery.data;
+  const dreamsLoading = isOwnProfile
+    ? ownDreamsQuery.isLoading
+    : otherUserDreamsQuery.isLoading;
   const dreams = dreamsData?.results || [];
 
   // Mutations
@@ -312,8 +329,6 @@ const UserProfile = () => {
     }
   }
 
-  const isOwnProfile = currentUser?.id === userId;
-
   return (
     <div className="min-h-screen bg-background">
       <input
@@ -541,7 +556,11 @@ const UserProfile = () => {
       ) : activeTab === "about" ? (
         <div className="px-4 py-8 sm:px-6 lg:px-8">
           {user ? (
-            <About user={user} onRefresh={handleRefreshDreams} />
+            <About
+              user={user}
+              isOwnProfile={isOwnProfile}
+              onRefresh={handleRefreshDreams}
+            />
           ) : (
             <div className="text-center text-muted-foreground">
               Loading user info...

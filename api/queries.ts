@@ -2,12 +2,14 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
+  useInfiniteQuery,
   type UseMutationOptions,
 } from "@tanstack/react-query";
 import {
   getUser,
   getUserById,
   getUserDreams,
+  getUserDreamsByUserId,
   updateUser,
   CreateDream,
   updateDream,
@@ -18,6 +20,8 @@ import {
   DeleteDreamImage,
   UploadUserImages,
   DeleteUserImage,
+  getAllCharities,
+  getNewsFeeds,
 } from "./requests";
 import type {
   User,
@@ -27,9 +31,11 @@ import type {
   CreateDreamDto,
   UpdateDreamDto,
   GetUserDreamsParams,
+  GetUserDreamsByUserIdParams,
   UploadImagePayload,
   UploadImagesPayload,
   UploadUserImagesPayload,
+  GetNewsFeedsParams,
 } from "./request-types";
 
 // Queries
@@ -65,6 +71,48 @@ export const useUserDreams = (params?: GetUserDreamsParams) => {
       return response.data;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes for dreams
+  });
+};
+
+export const useUserDreamsByUserId = (
+  userId: string,
+  params?: GetUserDreamsByUserIdParams,
+) => {
+  return useQuery({
+    queryKey: ["dreams", "user", userId, params],
+    queryFn: async () => {
+      const response = await getUserDreamsByUserId(userId, params);
+      return response.data;
+    },
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // 2 minutes for dreams
+  });
+};
+
+export const useCharities = () => {
+  return useQuery({
+    queryKey: ["charities"],
+    queryFn: async () => {
+      const response = await getAllCharities();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Infinite-scroll news feed ("doomscroll"). take defaults to 10 server-side;
+// pass a larger take if you want fewer round trips per scroll.
+export const useNewsFeeds = (params?: Omit<GetNewsFeedsParams, "page">) => {
+  return useInfiniteQuery({
+    queryKey: ["newsFeeds", params],
+    queryFn: async ({ pageParam }) => {
+      const response = await getNewsFeeds({ ...params, page: pageParam });
+      return response.data;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) =>
+      lastPage.meta.hasNextPage ? lastPage.meta.page + 1 : undefined,
+    staleTime: 60 * 1000, // 1 minute — feed content changes often
   });
 };
 

@@ -15,7 +15,7 @@ import {
 } from "@/components/reusable/PhotoCarousel";
 
 import { cn } from "@/lib/utils";
-import { UploadImages, DeleteDreamImage } from "@/api/requests";
+import { useUploadDreamImages, useDeleteDreamImage } from "@/api/queries";
 
 import type { DreamDto } from "@/api/request-types";
 
@@ -51,6 +51,9 @@ export default function HisDream({
   const [comment, setComment] = useState("");
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
+  const uploadDreamImagesMutation = useUploadDreamImages();
+  const deleteDreamImageMutation = useDeleteDreamImage();
+
   const images = dream.images ?? [];
   const likesCount = dream.likedDreamsByUsers?.length ?? 0;
   const sentCount = dream.sharedCount ?? 0;
@@ -66,7 +69,10 @@ export default function HisDream({
 
   const handleUploadPhotos = async (files: File[]) => {
     try {
-      await UploadImages({ dreamId: dream.id, images: files });
+      await uploadDreamImagesMutation.mutateAsync({
+        dreamId: dream.id,
+        images: files,
+      });
       // PhotoCarousel calls onUploadSuccess (onRefresh) itself right after
       // this resolves, so we don't refresh here too - avoids a duplicate,
       // overlapping refresh on every upload.
@@ -79,7 +85,10 @@ export default function HisDream({
   const handleDeleteDreamPhoto = async (imageId: string) => {
     if (!dream.id) return;
     try {
-      await DeleteDreamImage(dream.id, imageId);
+      await deleteDreamImageMutation.mutateAsync({
+        dreamId: dream.id,
+        imageId,
+      });
       // PhotoCarousel calls onUploadSuccess (onRefresh) itself right after
       // this resolves - no need to duplicate it here.
     } catch (error) {

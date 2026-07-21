@@ -68,6 +68,7 @@ const formatCountry = (code?: string | null) => {
 
 interface AboutProps {
   user: User;
+  isOwnProfile?: boolean;
   onAddPhoto?: () => void;
   onViewAllPhotos?: () => void;
   onRefresh?: () => void;
@@ -75,6 +76,7 @@ interface AboutProps {
 
 export default function About({
   user,
+  isOwnProfile,
   onAddPhoto,
   onViewAllPhotos,
   onRefresh,
@@ -160,11 +162,11 @@ export default function About({
           <PhotoCarousel
             images={photos}
             title="Profile Photos"
-            onAddPhoto={onAddPhoto}
+            onAddPhoto={isOwnProfile ? onAddPhoto : undefined}
             onEditPhotos={onViewAllPhotos}
             showViewAllButton={!!onViewAllPhotos}
-            uploadPhoto={handleUploadPhotos}
-            deletePhoto={handleDeletePhoto}
+            uploadPhoto={isOwnProfile ? handleUploadPhotos : undefined}
+            deletePhoto={isOwnProfile ? handleDeletePhoto : undefined}
             onUploadSuccess={onRefresh}
           />
         </CardContent>

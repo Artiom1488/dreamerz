@@ -12,6 +12,10 @@ import {
   UploadUserImagesPayload,
   PaginatedResponse,
   GetUserDreamsParams,
+  GetUserDreamsByUserIdParams,
+  CharityDto,
+  NewsFeedItemDto,
+  GetNewsFeedsParams,
 } from "./request-types";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -92,12 +96,27 @@ export const getUserDreams = (params?: GetUserDreamsParams) =>
     params,
   });
 
-// Convenience helper: just the single most recently created dream.
-// Relies on order=DESC + take=1 rather than pulling a full page and slicing client-side.
 export const getLatestDream = async (): Promise<DreamDto | null> => {
   const { data } = await getUserDreams({ order: "DESC", page: 1, take: 1 });
   return data.results[0] ?? null;
 };
+
+export const getAllCharities = async () => {
+  return await api.get<PaginatedResponse<CharityDto>>("/api/v1/charities");
+};
+
+export const getNewsFeeds = (params?: GetNewsFeedsParams) =>
+  api.get<PaginatedResponse<NewsFeedItemDto>>("/api/v1/news-feeds", {
+    params,
+  });
+
+export const getUserDreamsByUserId = (
+  userId: string,
+  params?: GetUserDreamsByUserIdParams,
+) =>
+  api.get<PaginatedResponse<DreamDto>>(`/api/v1/dreams/users/${userId}`, {
+    params,
+  });
 
 // PATCH
 export const updateUser = (payload: Partial<UpdateProfilePayload>) =>
