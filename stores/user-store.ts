@@ -24,8 +24,9 @@ export const useUserStore = create<UserStore>()(
     {
       name: "dreamerz-user",
       storage: createJSONStorage(() => localStorage),
+      // Don't persist user data - React Query handles caching
       partialize: (state) => ({
-        user: state.user,
+        hasHydrated: state.hasHydrated,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);

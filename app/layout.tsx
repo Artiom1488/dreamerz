@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Indie_Flower } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
+import { QueryClientProviderWrapper } from "@/components/providers/query-client-provider";
 
 import "./globals.css";
 
@@ -33,7 +34,7 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} ${indieFlower.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col overflow-x-hidden overflow-y-auto">
-        {children}
+        <QueryClientProviderWrapper>{children}</QueryClientProviderWrapper>
         <Toaster richColors />
       </body>
     </html>

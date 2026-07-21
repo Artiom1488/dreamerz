@@ -4,14 +4,14 @@ import UserNavbar from "@/components/header/UserNavbar";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUserStore } from "@/stores/user-store";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   SidebarInset,
   SidebarProvider,
   useSidebar,
 } from "@/components/ui/sidebar";
 import UserSideBar from "@/components/core/UserSideBar";
-import { getUser } from "@/api/requests";
+import { useUser } from "@/api/queries";
 
 function SidebarBackdrop() {
   const { open, isMobile, setOpen } = useSidebar();
@@ -40,11 +40,11 @@ export default function UserLayout({
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const accessToken = useAuthStore((state) => state.accessToken);
   const clearTokens = useAuthStore((state) => state.clearTokens);
-  const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
   const clearUser = useUserStore((state) => state.clearUser);
-  const [isLoadingUser, setIsLoadingUser] = useState(false);
-  const [hasTriedFetch, setHasTriedFetch] = useState(false);
+
+  // Use React Query for user data fetching
+  const { data: user, isLoading: isLoadingUser, error } = useUser();
 
   useEffect(() => {
     if (!hasHydrated) {
@@ -56,28 +56,19 @@ export default function UserLayout({
       return;
     }
 
-    // Fetch user data only once if not already in store
-    if (!user && !isLoadingUser && !hasTriedFetch) {
-      setIsLoadingUser(true);
-      setHasTriedFetch(true);
-      getUser()
-        .then((response) => {
-          setUser(response.data);
-        })
-        .catch((error) => {
-          console.error("Failed to fetch user data:", error);
-          // If 401, clear tokens and redirect to login
-          if (error?.response?.status === 401) {
-            clearTokens();
-            clearUser(); // Clear user data on auth failure
-            router.replace("/login");
-          }
-        })
-        .finally(() => {
-          setIsLoadingUser(false);
-        });
+    // If 401 error, clear tokens and redirect to login
+    if (error) {
+      console.error("Failed to fetch user data:", error);
+      clearTokens();
+      clearUser();
+      router.replace("/login");
     }
-  }, [accessToken, hasHydrated, user, isLoadingUser, hasTriedFetch]);
+
+    // Update user store when React Query data changes
+    if (user) {
+      setUser(user);
+    }
+  }, [accessToken, hasHydrated, user, error]);
 
   useEffect(() => {
     // Check onboarding status and redirect if not completed

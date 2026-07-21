@@ -9,7 +9,7 @@ import {
   type PhotoItem,
 } from "@/components/reusable/PhotoCarousel";
 
-import { UploadUserImages, DeleteUserImage } from "@/api/requests";
+import { useUploadUserImages, useDeleteUserImage } from "@/api/queries";
 import { COUNTRIES } from "@/data/mock-data/onboarding";
 import type { User } from "@/api/request-types";
 
@@ -79,6 +79,8 @@ export default function About({
   onViewAllPhotos,
   onRefresh,
 }: AboutProps) {
+  const uploadUserImagesMutation = useUploadUserImages();
+  const deleteUserImageMutation = useDeleteUserImage();
   const [uploading, setUploading] = useState(false);
 
   // Normalize and dedupe profile images
@@ -97,7 +99,7 @@ export default function About({
   const handleUploadPhotos = async (files: File[]) => {
     setUploading(true);
     try {
-      await UploadUserImages({ images: files });
+      await uploadUserImagesMutation.mutateAsync({ images: files });
       // PhotoCarousel calls onUploadSuccess (onRefresh) itself right after
       // this resolves, so we don't refresh here too - avoids a duplicate,
       // overlapping refresh on every upload.
@@ -110,7 +112,7 @@ export default function About({
 
   const handleDeletePhoto = async (imageId: string) => {
     try {
-      await DeleteUserImage(imageId);
+      await deleteUserImageMutation.mutateAsync(imageId);
       // PhotoCarousel calls onUploadSuccess (onRefresh) itself right after
       // this resolves - no need to duplicate it here.
     } catch (error) {

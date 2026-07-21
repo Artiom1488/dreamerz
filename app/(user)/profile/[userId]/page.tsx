@@ -3,15 +3,15 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 
 import {
-  getUser,
-  getUserById,
-  UploadCoverImage,
-  DeleteCoverImage,
-  UpdateCoverImagePosition,
-  getUserDreams,
-} from "@/api/requests";
+  useUser,
+  useUserById,
+  useUserDreams,
+  useUploadCoverImage,
+  useDeleteCoverImage,
+  useUpdateCoverImagePosition,
+} from "@/api/queries";
 
-import { User, DreamDto } from "@/api/request-types";
+import { User, DreamDto, PaginatedResponse } from "@/api/request-types";
 
 import { Button } from "@/components/ui/button";
 import HisDream from "@/components/profile-components/His-dreams";
@@ -41,15 +41,9 @@ const UserProfile = () => {
   const params = useParams();
   const userId = params.userId as string;
   const currentUser = useUserStore((state) => state.user);
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("about");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [dreams, setDreams] = useState<DreamDto[]>([]);
-  const [dreamsLoading, setDreamsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isRepositioning, setIsRepositioning] = useState(false);
   const [draftPosition, setDraftPosition] = useState(0);
@@ -62,6 +56,23 @@ const UserProfile = () => {
     null,
   );
 
+  // Use React Query for data fetching
+  // If viewing own profile, use useUser hook (same query key as login), otherwise use useUserById
+  const {
+    data: user,
+    isLoading: loading,
+    error: userError,
+  } = currentUser?.id === userId ? useUser() : useUserById(userId);
+  const { data: dreamsData, isLoading: dreamsLoading } = useUserDreams(
+    activeTab === "dream" ? { page: 1, take: 10 } : undefined,
+  );
+  const dreams = dreamsData?.results || [];
+
+  // Mutations
+  const uploadCoverImageMutation = useUploadCoverImage();
+  const deleteCoverImageMutation = useDeleteCoverImage();
+  const updateCoverImagePositionMutation = useUpdateCoverImagePosition();
+
   const resolveAssetUrl = (path?: string | null | any) => {
     if (!path) return null;
     const urlString =
@@ -72,22 +83,6 @@ const UserProfile = () => {
     const base = process.env.NEXT_PUBLIC_API_URL ?? "";
     return `${base}${urlString.startsWith("/") ? urlString.slice(1) : urlString}`;
   };
-
-  const refreshUser = useCallback(async () => {
-    try {
-      let response;
-      // If viewing own profile, use getUser(), otherwise use getUserById
-      if (currentUser?.id === userId) {
-        response = await getUser();
-      } else {
-        response = await getUserById(userId);
-      }
-      setUser(response.data);
-    } catch (error) {
-      setError("Failed to fetch user data");
-      console.error("Error fetching user data:", error);
-    }
-  }, [userId]);
 
   const recomputeMinOffset = useCallback(() => {
     const frame = frameRef.current;
@@ -145,53 +140,9 @@ const UserProfile = () => {
     return user.gender === "MALE" ? "His" : "Her";
   };
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        let response;
-        // If viewing own profile, use getUser(), otherwise use getUserById
-        if (currentUser?.id === userId) {
-          response = await getUser();
-        } else {
-          response = await getUserById(userId);
-        }
-        setUser(response.data);
-      } catch (error) {
-        setError("Failed to fetch user data");
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (userId) {
-      fetchUserData();
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    const fetchDreams = async () => {
-      if (activeTab === "dream" && userId && dreams.length === 0) {
-        setDreamsLoading(true);
-        try {
-          const { data } = await getUserDreams({ page: 1, take: 10 });
-          setDreams(data.results);
-        } catch (error) {
-          console.error("Error fetching dreams:", error);
-        } finally {
-          setDreamsLoading(false);
-        }
-      }
-    };
-    fetchDreams();
-  }, [activeTab, userId, dreams.length]);
-
-  const handleRefreshDreams = async () => {
-    try {
-      const { data } = await getUserDreams({ page: 1, take: 10 });
-      setDreams(data.results);
-    } catch (error) {
-      console.error("Error refreshing dreams:", error);
-    }
+  const handleRefreshDreams = () => {
+    // React Query will automatically refetch when the query key changes
+    // This is just a placeholder for any custom refresh logic
   };
 
   const handleUploadClick = () => {
@@ -208,17 +159,12 @@ const UserProfile = () => {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
     setIsPopoverOpen(false);
     try {
-      await UploadCoverImage(file);
-      const response = await getUser();
-      setUser(response.data);
+      await uploadCoverImageMutation.mutateAsync(file);
     } catch (error) {
       console.error("Error uploading cover image:", error);
-      setError("Failed to upload cover image");
-    } finally {
-      setUploading(false);
+      toast.error("Failed to upload cover image");
     }
   };
 
@@ -230,9 +176,7 @@ const UserProfile = () => {
     try {
       if (typeof user.coverImage === "string") return;
       const imageId = user.coverImage.id;
-      await DeleteCoverImage(imageId);
-      const response = await getUser();
-      setUser(response.data);
+      await deleteCoverImageMutation.mutateAsync(imageId);
       toast.success("Cover image deleted successfully");
     } catch (error) {
       console.error("Error deleting cover image:", error);
@@ -261,12 +205,10 @@ const UserProfile = () => {
     if (!user?.coverImage || typeof user.coverImage === "string") return;
     setSavingPosition(true);
     try {
-      await UpdateCoverImagePosition(
-        user.coverImage.id,
-        Math.abs(Math.round(draftPosition)),
-      );
-      const response = await getUser();
-      setUser(response.data);
+      await updateCoverImagePositionMutation.mutateAsync({
+        imageId: user.coverImage.id,
+        position: Math.abs(Math.round(draftPosition)),
+      });
       setIsRepositioning(false);
       toast.success("Cover position updated");
     } catch (err) {
@@ -302,10 +244,10 @@ const UserProfile = () => {
       </div>
     );
 
-  if (error)
+  if (userError)
     return (
       <div className="flex min-h-screen items-center justify-center text-destructive">
-        {error}
+        Failed to load user data
       </div>
     );
 
@@ -451,11 +393,13 @@ const UserProfile = () => {
                 <PopoverContent align="end" className="w-40 p-1">
                   <button
                     onClick={handleUploadClick}
-                    disabled={uploading}
+                    disabled={uploadCoverImageMutation.isPending}
                     className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted disabled:opacity-50"
                   >
                     <Upload className="h-4 w-4" />
-                    {uploading ? "Uploading..." : "Upload"}
+                    {uploadCoverImageMutation.isPending
+                      ? "Uploading..."
+                      : "Upload"}
                   </button>
                   <button
                     onClick={handleResize}
@@ -597,7 +541,7 @@ const UserProfile = () => {
       ) : activeTab === "about" ? (
         <div className="px-4 py-8 sm:px-6 lg:px-8">
           {user ? (
-            <About user={user} onRefresh={refreshUser} />
+            <About user={user} onRefresh={handleRefreshDreams} />
           ) : (
             <div className="text-center text-muted-foreground">
               Loading user info...

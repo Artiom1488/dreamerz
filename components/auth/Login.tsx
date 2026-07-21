@@ -2,6 +2,7 @@
 import { isAxiosError } from "axios";
 
 import { LoginUser } from "@/api/requests";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,7 @@ const Login = ({
   className,
 }: LoginProps) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const setTokens = useAuthStore((state) => state.setTokens);
   const setUser = useUserStore((state) => state.setUser);
   const [showPassword, setShowPassword] = useState(false);
@@ -100,6 +102,8 @@ const Login = ({
       try {
         const { data: userData } = await getUser();
         setUser(userData);
+        // Set the user data in React Query cache
+        queryClient.setQueryData(["user"], userData);
       } catch (error) {
         console.error("Failed to fetch user data after login:", error);
         // Continue anyway - tokens are set, user data can be fetched later

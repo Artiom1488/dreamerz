@@ -15,11 +15,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, X } from "lucide-react";
 import { useUserStore } from "@/stores/user-store";
 import {
-  updateUser,
-  getUserDreams,
-  UploadImages,
-  DeleteDreamImage,
-} from "@/api/requests";
+  useUpdateUser,
+  useUserDreams,
+  useUploadDreamImages,
+  useDeleteDreamImage,
+} from "@/api/queries";
 import { Separator } from "@/components/ui/separator";
 import {
   PhotoCarousel,
@@ -48,6 +48,17 @@ export function EditProfileModal({
 }: EditProfileModalProps) {
   const user = useUserStore((state) => state.user);
   const setUser = useUserStore((state) => state.setUser);
+
+  // React Query hooks
+  const updateUserMutation = useUpdateUser();
+  const { data: dreamsData } = useUserDreams(
+    open ? { page: 1, take: 10 } : undefined,
+  );
+  const uploadDreamImagesMutation = useUploadDreamImages();
+  const deleteDreamImageMutation = useDeleteDreamImage();
+
+  const dreams = dreamsData?.results || [];
+
   const [loading, setLoading] = useState(false);
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
@@ -59,7 +70,6 @@ export function EditProfileModal({
     lastName?: string;
     about?: string;
   }>({});
-  const [dreams, setDreams] = useState<DreamDto[]>([]);
   const [dreamDescription, setDreamDescription] = useState("");
   const [selectedDreamId, setSelectedDreamId] = useState<string | null>(null);
 
@@ -105,7 +115,7 @@ export function EditProfileModal({
 
     setLoading(true);
     try {
-      const { data } = await updateUser({
+      const data = await updateUserMutation.mutateAsync({
         firstName,
         lastName,
         country,
@@ -135,10 +145,10 @@ export function EditProfileModal({
   const handleUploadDreamPhotos = async (files: File[]) => {
     if (!selectedDreamId) return;
     try {
-      await UploadImages({ dreamId: selectedDreamId, images: files });
-      // Refresh dreams after upload and await for smoother experience
-      const { data } = await getUserDreams({ page: 1, take: 10 });
-      setDreams(data.results);
+      await uploadDreamImagesMutation.mutateAsync({
+        dreamId: selectedDreamId,
+        images: files,
+      });
     } catch (error) {
       console.error("Error uploading dream photos:", error);
       throw error;
@@ -148,10 +158,10 @@ export function EditProfileModal({
   const handleDeleteDreamPhoto = async (imageId: string) => {
     if (!selectedDreamId) return;
     try {
-      await DeleteDreamImage(selectedDreamId, imageId);
-      // Refresh dreams after delete
-      const { data } = await getUserDreams({ page: 1, take: 10 });
-      setDreams(data.results);
+      await deleteDreamImageMutation.mutateAsync({
+        dreamId: selectedDreamId,
+        imageId,
+      });
     } catch (error) {
       console.error("Error deleting dream photo:", error);
       throw error;
@@ -159,22 +169,11 @@ export function EditProfileModal({
   };
 
   useEffect(() => {
-    const fetchDreams = async () => {
-      if (open) {
-        try {
-          const { data } = await getUserDreams({ page: 1, take: 10 });
-          setDreams(data.results);
-          if (data.results.length > 0) {
-            setSelectedDreamId(data.results[0].id);
-            setDreamDescription(data.results[0].title || "");
-          }
-        } catch (error) {
-          console.error("Error fetching dreams:", error);
-        }
-      }
-    };
-    fetchDreams();
-  }, [open]);
+    if (open && dreams.length > 0) {
+      setSelectedDreamId(dreams[0].id);
+      setDreamDescription(dreams[0].title || "");
+    }
+  }, [open, dreams]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
