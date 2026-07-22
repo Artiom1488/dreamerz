@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   useQuery,
   useMutation,
@@ -22,6 +23,7 @@ import {
   DeleteUserImage,
   getAllCharities,
   getNewsFeeds,
+  searchUsers,
 } from "./requests";
 import type {
   User,
@@ -36,6 +38,7 @@ import type {
   UploadImagesPayload,
   UploadUserImagesPayload,
   GetNewsFeedsParams,
+  SearchUsersParams,
 } from "./request-types";
 
 // Queries
@@ -60,6 +63,36 @@ export const useUserById = (userId: string) => {
     },
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
+  });
+};
+
+// Debounces the `name` query so callers can bind this straight to an
+// input's onChange without managing their own timer. Only fires once
+// `name` is non-empty (after debounce); pass email/birthDay undebounced
+// via extraParams if you need them applied immediately.
+export const useSearchUsers = (
+  name: string,
+  extraParams?: Omit<SearchUsersParams, "name">,
+  debounceMs = 300,
+) => {
+  const [debouncedName, setDebouncedName] = useState(name);
+
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedName(name), debounceMs);
+    return () => clearTimeout(handle);
+  }, [name, debounceMs]);
+
+  return useQuery({
+    queryKey: ["users", "search", debouncedName, extraParams],
+    queryFn: async () => {
+      const response = await searchUsers({
+        name: debouncedName,
+        ...extraParams,
+      });
+      return response.data;
+    },
+    enabled: debouncedName.trim().length > 0,
+    staleTime: 60 * 1000,
   });
 };
 

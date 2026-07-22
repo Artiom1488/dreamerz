@@ -16,6 +16,7 @@ import {
   CharityDto,
   NewsFeedItemDto,
   GetNewsFeedsParams,
+  SearchUsersParams,
 } from "./request-types";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -89,6 +90,11 @@ export const getUser = () => api.get<User>("/api/v1/auth/profile");
 
 export const getUserById = (userId: string) =>
   api.get<User>(`/api/v1/users/${userId}`);
+
+// Search users by name, email, or birthDay. Returns a plain array (not
+// paginated), matching the Swagger spec for GET /api/v1/users.
+export const searchUsers = (params: SearchUsersParams) =>
+  api.get<User[]>("/api/v1/users", { params });
 
 // Logged-in user's dreams, paginated (defaults match the API: newest first, page 1, 10 per page)
 export const getUserDreams = (params?: GetUserDreamsParams) =>

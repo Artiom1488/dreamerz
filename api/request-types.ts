@@ -287,3 +287,12 @@ export interface GetNewsFeedsParams {
   page?: number;
   take?: number;
 }
+
+// --- User search (GET /api/v1/users) ---
+// Matches Swagger by name, email, or birthDay. Not paginated — returns a
+// plain User[], unlike dreams/charities/news-feeds.
+export interface SearchUsersParams {
+  name?: string;
+  email?: string;
+  birthDay?: boolean;
+}

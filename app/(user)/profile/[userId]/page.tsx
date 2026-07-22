@@ -17,6 +17,7 @@ import { User, DreamDto, PaginatedResponse } from "@/api/request-types";
 import { Button } from "@/components/ui/button";
 import HisDream from "@/components/profile-components/His-dreams";
 import About from "@/components/profile-components/About";
+import { PricingModal } from "@/components/reusable/PricingModal";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -45,6 +46,7 @@ const UserProfile = () => {
   const [activeTab, setActiveTab] = useState<string>("about");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isRepositioning, setIsRepositioning] = useState(false);
   const [draftPosition, setDraftPosition] = useState(0);
@@ -57,8 +59,8 @@ const UserProfile = () => {
     null,
   );
 
-  // Use React Query for data fetching
-  // If viewing own profile, use useUser hook (same query key as login), otherwise use useUserById
+  const hasScrolledToTopOnce = useRef(false);
+
   const {
     data: user,
     isLoading: loading,
@@ -84,6 +86,12 @@ const UserProfile = () => {
     ? ownDreamsQuery.isLoading
     : otherUserDreamsQuery.isLoading;
   const dreams = dreamsData?.results || [];
+
+  const hasLoadedDreamsOnce = useRef(false);
+  if (dreams.length > 0) {
+    hasLoadedDreamsOnce.current = true;
+  }
+  const showDreamsLoadingState = dreamsLoading && !hasLoadedDreamsOnce.current;
 
   // Mutations
   const uploadCoverImageMutation = useUploadCoverImage();
@@ -157,9 +165,23 @@ const UserProfile = () => {
     return user.gender === "MALE" ? "His" : "Her";
   };
 
-  const handleRefreshDreams = () => {
-    // React Query will automatically refetch when the query key changes
-    // This is just a placeholder for any custom refresh logic
+  const handleRefreshDreams = () => {};
+
+  const handleTabClick = (id: string) => {
+    setActiveTab(id);
+    if (!hasScrolledToTopOnce.current) {
+      hasScrolledToTopOnce.current = true;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleFulfillDream = () => {
+    if (currentUser?.balance === 0) {
+      setShowPricingModal(true);
+      return;
+    }
+    // TODO: Implement fulfill functionality
+    console.log("Fulfilling dream");
   };
 
   const handleUploadClick = () => {
@@ -254,12 +276,7 @@ const UserProfile = () => {
     dragState.current = null;
   };
 
-  if (loading)
-    return (
-      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
-        Loading...
-      </div>
-    );
+  if (loading) return <ProfileSkeleton />;
 
   if (userError)
     return (
@@ -492,6 +509,7 @@ const UserProfile = () => {
                 variant="gradient_fill"
                 size="lg"
                 className="rounded-full px-8"
+                onClick={handleFulfillDream}
               >
                 Fulfill {getPronoun()} Dream
               </Button>
@@ -512,7 +530,7 @@ const UserProfile = () => {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleTabClick(item.id)}
               className={cn(
                 "shrink-0 whitespace-nowrap rounded-t-lg px-4 py-3 text-sm font-medium transition-colors",
                 activeTab === item.id
@@ -527,8 +545,8 @@ const UserProfile = () => {
       </div>
 
       {activeTab === "dream" ? (
-        <div className="px-4 py-8 sm:px-6 lg:px-8">
-          {dreamsLoading ? (
+        <div className="min-h-[50vh] px-4 py-8 sm:px-6 lg:px-8">
+          {showDreamsLoadingState ? (
             <div className="text-center text-muted-foreground">
               Loading dreams...
             </div>
@@ -582,6 +600,10 @@ const UserProfile = () => {
         onOpenChange={setEditModalOpen}
         onDreamsRefresh={handleRefreshDreams}
       />
+      <PricingModal
+        open={showPricingModal}
+        onOpenChange={setShowPricingModal}
+      />
     </div>
   );
 };
@@ -591,6 +613,36 @@ const StatPill = ({ label, value }: { label: string; value: number }) => (
     <Asterisk className="h-4 w-4" />
     <span>{label}</span>
     <span className="font-semibold text-foreground">{value}</span>
+  </div>
+);
+
+const ProfileSkeleton = () => (
+  <div className="min-h-screen animate-pulse bg-background">
+    <div className="relative">
+      <div className="px-4 pt-4 sm:px-6 sm:pt-6 lg:px-8">
+        <div className="h-[220px] w-full rounded-2xl bg-muted sm:h-[300px] lg:h-[400px]" />
+      </div>
+      <div className="absolute inset-x-0 bottom-0 flex translate-y-1/2 justify-center">
+        <div className="h-28 w-28 rounded-full border-4 border-background bg-muted shadow-sm md:h-32 md:w-32" />
+      </div>
+    </div>
+
+    <div className="flex flex-col items-center px-4 pt-16 sm:pt-20">
+      <div className="h-7 w-48 rounded bg-muted" />
+      <div className="mt-4 flex gap-3">
+        <div className="h-11 w-40 rounded-full bg-muted" />
+      </div>
+    </div>
+
+    <div className="mt-8 border-b border-border">
+      <div className="flex justify-center gap-2 px-4">
+        <div className="h-10 w-20 rounded-t-lg bg-muted" />
+        <div className="h-10 w-20 rounded-t-lg bg-muted" />
+        <div className="h-10 w-20 rounded-t-lg bg-muted" />
+      </div>
+    </div>
+
+    <div className="min-h-[50vh] px-4 py-8 sm:px-6 lg:px-8" />
   </div>
 );
 

@@ -1,19 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useCharities } from "@/api/queries";
-import type { CharityDto } from "@/api/request-types";
 import { Button } from "@/components/ui/button";
 
 export default function WingDonations() {
   const { data: charitiesData, isLoading } = useCharities();
-  const [wingDonations, setWingDonations] = useState<CharityDto[]>([]);
-
-  useEffect(() => {
-    if (charitiesData?.results) {
-      setWingDonations(charitiesData.results);
-    }
-  }, [charitiesData]);
+  const wingDonations = charitiesData?.results ?? [];
 
   if (isLoading) {
     return <div className="p-4 text-center text-gray-500">Loading...</div>;

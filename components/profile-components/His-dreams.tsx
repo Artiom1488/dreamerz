@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Bookmark, Heart, Pencil, Send, Share2, Smile } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import {
   PhotoCarousel,
   type PhotoItem,
@@ -16,6 +15,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { useUploadDreamImages, useDeleteDreamImage } from "@/api/queries";
+import { useUserStore } from "@/stores/user-store";
 
 import type { DreamDto } from "@/api/request-types";
 
@@ -50,6 +50,7 @@ export default function HisDream({
 }: HisDreamProps) {
   const [comment, setComment] = useState("");
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const currentUser = useUserStore((state) => state.user);
 
   const uploadDreamImagesMutation = useUploadDreamImages();
   const deleteDreamImageMutation = useDeleteDreamImage();
@@ -59,6 +60,14 @@ export default function HisDream({
   const sentCount = dream.sharedCount ?? 0;
   const savedCount = dream.savedCount ?? 0;
   const progressValue = dream.progress ?? 0;
+
+  const isLiked = useMemo(
+    () =>
+      dream.likedDreamsByUsers?.some((u: any) => u.id === currentUser?.id) ||
+      false,
+    [dream.likedDreamsByUsers, currentUser?.id],
+  );
+  const isSaved = dream.isSaved || false;
 
   const submitComment = () => {
     const trimmed = comment.trim();
@@ -169,61 +178,47 @@ export default function HisDream({
 
           <p className="text-sm font-medium text-amber-800">{dream.title}</p>
 
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-2">
             <div className="flex items-center gap-4">
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="sm"
+                className={`gap-2 ${isLiked ? "text-red-500" : ""}`}
                 onClick={onToggleLike}
-                aria-label="Like this dream"
-                className="text-muted-foreground transition hover:text-foreground"
               >
-                <Heart
-                  className={cn(
-                    "h-5 w-5",
-                    likesCount > 0 && "fill-current text-rose-500",
-                  )}
-                />
-              </button>
-              <button
-                type="button"
+                <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
+                <span>{likesCount}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2"
                 onClick={onSend}
-                aria-label="Send this dream"
-                className="text-muted-foreground transition hover:text-foreground"
               >
                 <Send className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
+                <span>{sentCount}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2"
                 onClick={onShare}
-                aria-label="Share this dream"
-                className="text-muted-foreground transition hover:text-foreground"
               >
                 <Share2 className="h-5 w-5" />
-              </button>
-              <button
-                type="button"
-                onClick={onToggleSave}
-                aria-label="Save this dream"
-                className="text-muted-foreground transition hover:text-foreground"
-              >
-                <Bookmark
-                  className={cn("h-5 w-5", dream.isSaved && "fill-current")}
-                />
-              </button>
+                <span>0</span>
+              </Button>
             </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">
-              {likesCount} Likes
-            </span>
-            <Separator orientation="vertical" className="h-3" />
-            <span>{sentCount} Sent</span>
-            <Separator orientation="vertical" className="h-3" />
-            <span>{savedCount} Saved</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`flex-col gap-1 h-auto py-2 px-3 ${isSaved ? "text-blue-500" : ""}`}
+              onClick={onToggleSave}
+            >
+              <Bookmark
+                className={`h-5 w-5 ${isSaved ? "fill-current" : ""}`}
+              />
+              <span className="text-xs">{savedCount}</span>
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -26,42 +26,17 @@ import {
 import type { NewsFeedItemDto } from "@/api/request-types";
 import { useUserStore } from "@/stores/user-store";
 import { PricingModal } from "@/components/reusable/PricingModal";
-
-const ASSET_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "";
-
-const resolveAssetUrl = (path?: string | null | any) => {
-  if (!path) return null;
-  const urlString =
-    typeof path === "object" ? path.url || path.avatarUrl : path;
-  if (!urlString) return null;
-  if (typeof urlString !== "string") return null;
-  if (urlString.startsWith("http")) return urlString;
-  const cleanPath = urlString.startsWith("/") ? urlString.slice(1) : urlString;
-  return `${ASSET_BASE_URL}${cleanPath}`;
-};
+import { HoverUser } from "@/components/reusable/HoverUser";
+import { resolveAssetUrl } from "./postUtils";
+import { useTimeAgo } from "@/hooks/useTimeAgo";
 
 interface DreamPostProps {
   post: NewsFeedItemDto;
 }
 
-function getTimeAgo(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (seconds < 60) return "just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
-  if (seconds < 2592000) return `${Math.floor(seconds / 604800)} weeks ago`;
-  if (seconds < 31536000) return `${Math.floor(seconds / 2592000)} months ago`;
-  return `${Math.floor(seconds / 31536000)} years ago`;
-}
-
 export function DreamPost({ post }: DreamPostProps) {
   const router = useRouter();
   const currentUser = useUserStore((state) => state.user);
-  const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(post.isSaved);
   const [comment, setComment] = useState("");
   const [showPricingModal, setShowPricingModal] = useState(false);
@@ -70,7 +45,14 @@ export function DreamPost({ post }: DreamPostProps) {
   const user = post.user;
   const contributor = post.contributor;
 
-  if (!dream) return null;
+  const [liked, setLiked] = useState(
+    dream?.likedDreamsByUsers?.some((u) => u.id === currentUser?.id) || false,
+  );
+
+  const contributorTimeAgo = useTimeAgo(post.createdAt);
+  const postTimeAgo = useTimeAgo(dream?.createdAt ?? "");
+
+  if (!dream || !user) return null;
 
   const progress = dream.progress || 0;
   const fulfilled = dream.amountReceived || 0;
@@ -137,19 +119,21 @@ export function DreamPost({ post }: DreamPostProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="flex items-center gap-2">
-                <span
-                  className="font-semibold text-sm cursor-pointer hover:underline"
-                  onClick={() => handleUserClick(contributor.id)}
-                >
-                  {contributor.firstName} {contributor.lastName}
-                </span>
+                <HoverUser user={contributor}>
+                  <span
+                    className="font-semibold text-sm cursor-pointer hover:underline"
+                    onClick={() => handleUserClick(contributor.id)}
+                  >
+                    {contributor.firstName} {contributor.lastName}
+                  </span>
+                </HoverUser>
                 <span className="text-sm text-muted-foreground">
                   fulfilled this dream
                 </span>
               </div>
             </div>
             <span className="text-xs text-muted-foreground">
-              {getTimeAgo(post.createdAt)}
+              {contributorTimeAgo}
             </span>
           </div>
         )}
@@ -170,15 +154,15 @@ export function DreamPost({ post }: DreamPostProps) {
               </AvatarFallback>
             </Avatar>
             <div>
-              <div
-                className="font-semibold cursor-pointer hover:underline"
-                onClick={() => handleUserClick(user.id)}
-              >
-                {user.firstName} {user.lastName}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {getTimeAgo(dream.createdAt)}
-              </div>
+              <HoverUser user={user}>
+                <div
+                  className="font-semibold cursor-pointer hover:underline"
+                  onClick={() => handleUserClick(user.id)}
+                >
+                  {user.firstName} {user.lastName}
+                </div>
+              </HoverUser>
+              <div className="text-xs text-muted-foreground">{postTimeAgo}</div>
             </div>
           </div>
           <div className="flex gap-2">
@@ -265,11 +249,11 @@ export function DreamPost({ post }: DreamPostProps) {
             <Button
               variant="ghost"
               size="sm"
-              className={`gap-2 ${saved ? "text-blue-500" : ""}`}
+              className={`flex-col gap-1 h-auto py-2 px-3 ${saved ? "text-blue-500" : ""}`}
               onClick={handleSave}
             >
               <Bookmark className={`h-5 w-5 ${saved ? "fill-current" : ""}`} />
-              <span>{savedCount}</span>
+              <span className="text-xs">{savedCount}</span>
             </Button>
           </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useUser } from "@/api/queries";
 import { useUserDreams } from "@/api/queries";
 import { useUserStore } from "@/stores/user-store";
@@ -15,6 +16,7 @@ type CompletionStep = {
 
 export default function CompleteProfileCard() {
   const [isHidden, setIsHidden] = useState(false);
+  const router = useRouter();
   const { data: user, isLoading: userLoading } = useUser();
   const { data: dreamsData } = useUserDreams();
   const { user: storeUser } = useUserStore();
@@ -29,12 +31,36 @@ export default function CompleteProfileCard() {
     setIsHidden(true);
   };
 
+  const handleStepClick = (stepId: string) => {
+    const currentUser = user || storeUser;
+    if (!currentUser) return;
+
+    switch (stepId) {
+      case "profile-picture":
+      case "cover-photo":
+        router.push("/profile/edit-form");
+        break;
+      case "create-dream":
+      case "dream-pictures":
+        router.push("/profile");
+        break;
+      case "fulfill-dreams":
+        if (currentUser.balance === 0) {
+          router.push("/pricing");
+        } else {
+          router.push("/");
+        }
+        break;
+    }
+  };
+
   // Calculate completion steps based on null checks
   const steps: CompletionStep[] = [
     {
       id: "profile-picture",
       label: "Add profile picture",
-      completed: !!currentUser.mainImageUrl && currentUser.images?.length > 0,
+      completed:
+        !!currentUser.mainImageUrl && (currentUser.images?.length ?? 0) > 0,
     },
     {
       id: "cover-photo",
@@ -94,10 +120,11 @@ export default function CompleteProfileCard() {
         {steps.map((step) => (
           <div
             key={step.id}
-            className={`flex items-start gap-3 rounded-lg p-2 ${
+            onClick={() => !step.completed && handleStepClick(step.id)}
+            className={`flex items-start gap-3 rounded-lg p-2 cursor-pointer ${
               step.completed
-                ? "opacity-50"
-                : "bg-gradient-to-r from-purple-50 to-pink-50"
+                ? "opacity-50 pointer-events-none"
+                : "bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100"
             }`}
           >
             {step.completed ? (
