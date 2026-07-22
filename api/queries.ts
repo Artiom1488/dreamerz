@@ -24,6 +24,8 @@ import {
   getAllCharities,
   getNewsFeeds,
   searchUsers,
+  getMyActivity,
+  getUserActivityByUserId,
 } from "./requests";
 import type {
   User,
@@ -39,6 +41,8 @@ import type {
   UploadUserImagesPayload,
   GetNewsFeedsParams,
   SearchUsersParams,
+  GetMyActivityParams,
+  GetUserActivityParams,
 } from "./request-types";
 
 // Queries
@@ -119,6 +123,32 @@ export const useUserDreamsByUserId = (
     },
     enabled: !!userId,
     staleTime: 2 * 60 * 1000, // 2 minutes for dreams
+  });
+};
+
+export const useMyActivity = (params?: GetMyActivityParams) => {
+  return useQuery({
+    queryKey: ["activity", "my", params],
+    queryFn: async () => {
+      const response = await getMyActivity(params);
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000,
+  });
+};
+
+export const useUserActivityByUserId = (
+  userId: string,
+  params: GetUserActivityParams,
+) => {
+  return useQuery({
+    queryKey: ["activity", "user", userId, params],
+    queryFn: async () => {
+      const response = await getUserActivityByUserId(userId, params);
+      return response.data;
+    },
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000,
   });
 };
 

@@ -10,13 +10,21 @@ import {
   useUploadCoverImage,
   useDeleteCoverImage,
   useUpdateCoverImagePosition,
+  useMyActivity,
+  useUserActivityByUserId,
 } from "@/api/queries";
 
-import { User, DreamDto, PaginatedResponse } from "@/api/request-types";
+import {
+  User,
+  DreamDto,
+  PaginatedResponse,
+  ActivityType,
+} from "@/api/request-types";
 
 import { Button } from "@/components/ui/button";
 import HisDream from "@/components/profile-components/His-dreams";
 import About from "@/components/profile-components/About";
+import { ActivityItem } from "@/components/profile-components/ActivityItem";
 import { PricingModal } from "@/components/reusable/PricingModal";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -93,6 +101,27 @@ const UserProfile = () => {
   }
   const showDreamsLoadingState = dreamsLoading && !hasLoadedDreamsOnce.current;
 
+  // Fetch activity based on whether viewing own profile or another user's profile
+  const myActivityQuery = useMyActivity(
+    isOwnProfile && activeTab === "activity"
+      ? { page: 1, take: 10 }
+      : undefined,
+  );
+  const otherUserActivityQuery = useUserActivityByUserId(
+    !isOwnProfile ? userId : "",
+    activeTab === "activity"
+      ? { type: "ALL" as ActivityType, page: 1, take: 10 }
+      : { type: "ALL" as ActivityType },
+  );
+
+  const activityData = isOwnProfile
+    ? myActivityQuery.data
+    : otherUserActivityQuery.data;
+  const activityLoading = isOwnProfile
+    ? myActivityQuery.isLoading
+    : otherUserActivityQuery.isLoading;
+  const activities = activityData?.results || [];
+
   // Mutations
   const uploadCoverImageMutation = useUploadCoverImage();
   const deleteCoverImageMutation = useDeleteCoverImage();
@@ -158,7 +187,7 @@ const UserProfile = () => {
     return () => observer.disconnect();
   }, [recomputeMinOffset, recomputePositionPercentage]);
 
-  const navItems = getNavItems(user?.gender);
+  const navItems = getNavItems(user?.gender, user?.role);
 
   const getPronoun = () => {
     if (!user?.gender) return "Her";
@@ -368,18 +397,27 @@ const UserProfile = () => {
             onPointerLeave={handlePointerUp}
             className={cn(
               "relative h-[220px] w-full overflow-hidden rounded-2xl sm:h-[300px] lg:h-[400px]",
+              user?.role === "ANGEL" &&
+                "p-[2px] bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)]",
               isRepositioning && "touch-none select-none cursor-move",
             )}
           >
-            <img
-              ref={coverImgRef}
-              src={coverUrl}
-              alt="Cover"
-              draggable={false}
-              onLoad={recomputeMinOffset}
-              className="pointer-events-none h-full w-full object-cover"
-              style={{ objectPosition: `50% ${responsivePosition}px` }}
-            />
+            <div
+              className={cn(
+                "relative h-full w-full overflow-hidden rounded-2xl",
+                user?.role === "ANGEL" && "bg-background",
+              )}
+            >
+              <img
+                ref={coverImgRef}
+                src={coverUrl}
+                alt="Cover"
+                draggable={false}
+                onLoad={recomputeMinOffset}
+                className="pointer-events-none h-full w-full object-cover"
+                style={{ objectPosition: `50% ${responsivePosition}px` }}
+              />
+            </div>
 
             {isRepositioning && (
               <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-3">
@@ -453,45 +491,94 @@ const UserProfile = () => {
           </div>
         </div>
 
-        <div className="pointer-events-none absolute inset-x-0 top-full hidden justify-center px-6 pt-3 md:flex md:pt-4">
-          <div className="flex w-full max-w-2xl items-center justify-between">
-            <StatPill label="Fulfilled" value={fulfilledCount} />
-            <div className="w-32 shrink-0 lg:w-36" aria-hidden />
-            <StatPill label="Received" value={receivedCount} />
-          </div>
-        </div>
+        <div className="absolute inset-x-0 bottom-0 flex translate-y-1/2 items-center justify-center">
+          {user?.role !== "ANGEL" && (
+            <div className="mr-4 hidden translate-y-6 items-center gap-1.5 text-sm text-muted-foreground sm:flex md:mr-8 md:translate-y-8">
+              <Asterisk className="h-4 w-4" />
+              <span>Received</span>
+              <span className="font-semibold text-foreground">
+                {receivedCount}
+              </span>
+            </div>
+          )}
 
-        <div className="absolute inset-x-0 bottom-0 flex translate-y-1/2 justify-center">
-          <Avatar className="h-28 w-28 border-4 border-background shadow-sm md:h-32 md:w-32">
-            <AvatarImage
-              src={avatarUrl}
-              alt={displayName}
-              className="object-cover"
-            />
-            <AvatarFallback className="text-xl font-medium">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          {user?.role === "ANGEL" ? (
+            <div className="rounded-full bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)] p-1 shadow-sm">
+              <Avatar className="h-28 w-28 border-4 border-background md:h-32 md:w-32">
+                <AvatarImage
+                  src={avatarUrl}
+                  alt={displayName}
+                  className="object-cover"
+                />
+                <AvatarFallback className="text-xl font-medium">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          ) : (
+            <Avatar className="h-28 w-28 border-4 border-background shadow-sm md:h-32 md:w-32">
+              <AvatarImage
+                src={avatarUrl}
+                alt={displayName}
+                className="object-cover"
+              />
+              <AvatarFallback className="text-xl font-medium">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          )}
+
+          {user?.role !== "ANGEL" && (
+            <div className="ml-4 hidden translate-y-6 items-center gap-1.5 text-sm text-muted-foreground sm:flex md:ml-8 md:translate-y-8">
+              <Asterisk className="h-4 w-4" />
+              <span>Fulfilled</span>
+              <span className="font-semibold text-foreground">
+                {fulfilledCount}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="flex flex-col items-center px-4 pt-16 sm:pt-20">
-        <h1 className="text-xl font-bold sm:text-2xl">{displayName}</h1>
-        <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground md:hidden">
-          <span>
-            Fulfilled{" "}
-            <span className="font-semibold text-foreground">
-              {fulfilledCount}
-            </span>
-          </span>
-          <Asterisk className="h-3.5 w-3.5" />
-          <span>
-            Received{" "}
-            <span className="font-semibold text-foreground">
-              {receivedCount}
-            </span>
-          </span>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {user?.role === "ANGEL" && (
+            <div className="bg-[linear-gradient(135deg,#84FAD5_0%,#EBBFFF_50%,#F6EC85_100%)] text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md">
+              Dream Angel
+            </div>
+          )}
+          <h1 className="text-xl font-bold sm:text-2xl">{displayName}</h1>
+          {user?.role === "ANGEL" && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Asterisk className="h-3.5 w-3.5" />
+              <span>
+                Fulfilled{" "}
+                <span className="font-semibold text-foreground">
+                  {fulfilledCount}
+                </span>
+              </span>
+            </div>
+          )}
         </div>
+
+        {user?.role !== "ANGEL" && (
+          <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground sm:hidden">
+            <Asterisk className="h-3.5 w-3.5" />
+            <span>
+              Received{" "}
+              <span className="font-semibold text-foreground">
+                {receivedCount}
+              </span>
+            </span>
+            <Asterisk className="h-3.5 w-3.5" />
+            <span>
+              Fulfilled{" "}
+              <span className="font-semibold text-foreground">
+                {fulfilledCount}
+              </span>
+            </span>
+          </div>
+        )}
 
         <div className="mt-4 flex gap-3">
           {isOwnProfile ? (
@@ -503,7 +590,7 @@ const UserProfile = () => {
             >
               Edit Profile
             </Button>
-          ) : (
+          ) : user?.role !== "ANGEL" ? (
             <>
               <Button
                 variant="gradient_fill"
@@ -521,6 +608,14 @@ const UserProfile = () => {
                 Message
               </Button>
             </>
+          ) : (
+            <Button
+              variant="gradient_outline"
+              size="lg"
+              className="rounded-full px-8"
+            >
+              Message
+            </Button>
           )}
         </div>
       </div>
@@ -571,6 +666,26 @@ const UserProfile = () => {
             </div>
           )}
         </div>
+      ) : activeTab === "activity" ? (
+        <div className="min-h-[50vh] px-4 py-8 sm:px-6 lg:px-8">
+          {activityLoading ? (
+            <div className="text-center text-muted-foreground">
+              Loading activity...
+            </div>
+          ) : activities.length > 0 ? (
+            <div className="space-y-4">
+              {activities.map((activity: any) => (
+                <ActivityItem key={activity.id} activity={activity} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground">
+              {isOwnProfile
+                ? "You don't have any activity yet"
+                : "This user doesn't have any activity"}
+            </div>
+          )}
+        </div>
       ) : activeTab === "about" ? (
         <div className="px-4 py-8 sm:px-6 lg:px-8">
           {user ? (
@@ -607,14 +722,6 @@ const UserProfile = () => {
     </div>
   );
 };
-
-const StatPill = ({ label, value }: { label: string; value: number }) => (
-  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-    <Asterisk className="h-4 w-4" />
-    <span>{label}</span>
-    <span className="font-semibold text-foreground">{value}</span>
-  </div>
-);
 
 const ProfileSkeleton = () => (
   <div className="min-h-screen animate-pulse bg-background">

@@ -296,3 +296,18 @@ export interface SearchUsersParams {
   email?: string;
   birthDay?: boolean;
 }
+
+export type ActivityType = "LIKE" | "COMMENT" | "DONATION" | "ALL";
+
+export interface GetMyActivityParams {
+  order?: "ASC" | "DESC";
+  page?: number;
+  take?: number;
+}
+
+export interface GetUserActivityParams {
+  type: ActivityType;
+  order?: "ASC" | "DESC";
+  page?: number;
+  take?: number;
+}

@@ -17,6 +17,8 @@ import {
   NewsFeedItemDto,
   GetNewsFeedsParams,
   SearchUsersParams,
+  GetMyActivityParams,
+  GetUserActivityParams,
 } from "./request-types";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -121,6 +123,17 @@ export const getUserDreamsByUserId = (
   params?: GetUserDreamsByUserIdParams,
 ) =>
   api.get<PaginatedResponse<DreamDto>>(`/api/v1/dreams/users/${userId}`, {
+    params,
+  });
+
+export const getMyActivity = (params?: GetMyActivityParams) =>
+  api.get<PaginatedResponse<any>>("/api/v1/me/activity", { params });
+
+export const getUserActivityByUserId = (
+  userId: string,
+  params: GetUserActivityParams,
+) =>
+  api.get<PaginatedResponse<any>>(`/api/v1/me/${userId}/activity`, {
     params,
   });
 
