@@ -39,7 +39,7 @@ export function FeedCard() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 p-4 max-w-2xl">
+      <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
           <Card key={i} className="p-4">
             <div className="space-y-3">
@@ -59,7 +59,7 @@ export function FeedCard() {
 
   if (error) {
     return (
-      <div className="p-4 max-w-2xl text-center text-red-500">
+      <div className="text-center text-red-500">
         Failed to load newsfeed. Please try again later.
       </div>
     );
@@ -69,14 +69,14 @@ export function FeedCard() {
 
   if (allPosts.length === 0) {
     return (
-      <div className="p-4 max-w-2xl text-center text-muted-foreground">
+      <div className="text-center text-muted-foreground">
         No posts yet. Be the first to share your dream!
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 p-4 max-w-2xl">
+    <div className="space-y-4">
       {allPosts.map((post) => (
         <PostRenderer key={post.id} post={post} />
       ))}

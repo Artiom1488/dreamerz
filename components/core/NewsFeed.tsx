@@ -18,7 +18,7 @@ export default function NewsFeed() {
       <div className="hidden md:flex px-4 md:px-6 lg:px-8 justify-center">
         <div className="flex h-[calc(100vh-4rem)] max-w-7xl">
           {/* Sidebar with MiniProfile, CompleteProfileCard, and WingDonations */}
-          <ScrollArea className="w-72 lg:w-80 flex-shrink-0">
+          <ScrollArea className="w-72 lg:w-80 flex-shrink-0 h-full min-h-0">
             <div className="p-6 space-y-6">
               <MiniProfile />
               <CompleteProfileCard />
@@ -27,8 +27,8 @@ export default function NewsFeed() {
           </ScrollArea>
 
           {/* Main content area */}
-          <ScrollArea>
-            <div className="py-6 sm:py-8">
+          <ScrollArea className="w-[42rem] flex-shrink-0 h-full min-h-0">
+            <div className="p-6">
               <FeedCard />
             </div>
           </ScrollArea>
