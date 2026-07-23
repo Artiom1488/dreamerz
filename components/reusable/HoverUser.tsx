@@ -60,7 +60,11 @@ export function HoverUser({ user, children }: HoverUserProps) {
   return (
     <HoverCard open={isOpen} onOpenChange={setIsOpen} openDelay={100}>
       <HoverCardTrigger asChild>{children}</HoverCardTrigger>
-      <HoverCardContent className="w-80 animate-in fade-in zoom-in-95 duration-200">
+      <HoverCardContent
+        className="w-80 animate-in fade-in zoom-in-95 duration-200"
+        align="start"
+        sideOffset={4}
+      >
         <div className="flex items-start gap-4">
           <Avatar className="h-16 w-16">
             <AvatarImage src={avatarUrl || undefined} alt={displayName} />

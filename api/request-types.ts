@@ -311,3 +311,49 @@ export interface GetUserActivityParams {
   page?: number;
   take?: number;
 }
+
+// --- Dream comments (GET/POST /api/v1/dreams/comments) ---
+
+// CommentDto - a single comment, possibly threaded via `parentId`/`children`.
+// `children` is recursive (replies can themselves have replies).
+export interface CommentDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  message: string;
+  dreamId: string;
+  user: SummaryUserDto;
+  replyUserId: string | null;
+  replyUser: SummaryUserDto | null;
+  parentId: string | null;
+  children: CommentDto[];
+  repliesCount: number;
+}
+
+// Comment list responses include `commentCount` (total comment count for the
+// dream) alongside the usual pagination fields, so extend PaginatedMeta
+// rather than reuse it as-is.
+export interface CommentsPaginatedMeta extends PaginatedMeta {
+  commentCount: number;
+}
+
+export interface CommentsPaginatedResponse {
+  results: CommentDto[];
+  meta: CommentsPaginatedMeta;
+}
+
+export interface GetDreamCommentsParams {
+  order?: "ASC" | "DESC";
+  page?: number;
+  take?: number;
+}
+
+// CreateCommentDto - input for posting a top-level comment or a reply.
+// For a reply, set `parentId` to the root comment's id and `replyUserId` to
+// the id of the user being replied to; both are null for a top-level comment.
+export interface CreateCommentDto {
+  message: string;
+  dreamId: string;
+  replyUserId: string | null;
+  parentId: string | null;
+}

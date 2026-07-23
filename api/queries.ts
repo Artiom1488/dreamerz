@@ -14,6 +14,7 @@ import {
   updateUser,
   CreateDream,
   updateDream,
+  likeDream,
   UploadCoverImage,
   DeleteCoverImage,
   UpdateCoverImagePosition,
@@ -22,10 +23,13 @@ import {
   UploadUserImages,
   DeleteUserImage,
   getAllCharities,
+  getCharityById,
   getNewsFeeds,
   searchUsers,
   getMyActivity,
   getUserActivityByUserId,
+  getDreamComments,
+  CreateComment,
 } from "./requests";
 import type {
   User,
@@ -43,6 +47,9 @@ import type {
   SearchUsersParams,
   GetMyActivityParams,
   GetUserActivityParams,
+  GetDreamCommentsParams,
+  CreateCommentDto,
+  CommentDto,
 } from "./request-types";
 
 // Queries
@@ -126,6 +133,21 @@ export const useUserDreamsByUserId = (
   });
 };
 
+export const useDreamComments = (
+  dreamId: string,
+  params?: GetDreamCommentsParams,
+) => {
+  return useQuery({
+    queryKey: ["comments", dreamId, params],
+    queryFn: async () => {
+      const response = await getDreamComments(dreamId, params);
+      return response.data;
+    },
+    enabled: !!dreamId,
+    staleTime: 60 * 1000, // 1 minute
+  });
+};
+
 export const useMyActivity = (params?: GetMyActivityParams) => {
   return useQuery({
     queryKey: ["activity", "my", params],
@@ -159,6 +181,18 @@ export const useCharities = () => {
       const response = await getAllCharities();
       return response.data;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useCharityById = (charityId: string) => {
+  return useQuery({
+    queryKey: ["charity", charityId],
+    queryFn: async () => {
+      const response = await getCharityById(charityId);
+      return response.data;
+    },
+    enabled: !!charityId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
@@ -242,6 +276,59 @@ export const useUpdateDream = (
     onSuccess: () => {
       // Invalidate dreams queries to refresh the list
       queryClient.invalidateQueries({ queryKey: ["dreams"] });
+    },
+    ...options,
+  });
+};
+
+// Toggles like state for a dream. The endpoint returns the full updated
+// DreamDto, so we splice it directly into any cached "dreams" list/detail
+// queries instead of just invalidating (avoids a refetch flash on tap).
+export const useLikeDream = (
+  options?: Omit<UseMutationOptions<DreamDto, Error, string>, "mutationFn">,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (dreamId) => {
+      const response = await likeDream(dreamId);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueriesData<PaginatedResponse<DreamDto>>(
+        { queryKey: ["dreams"] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            results: old.results.map((dream) =>
+              dream.id === data.id ? { ...dream, ...data } : dream,
+            ),
+          };
+        },
+      );
+      queryClient.invalidateQueries({ queryKey: ["dreams"] });
+    },
+    ...options,
+  });
+};
+
+export const useCreateComment = (
+  options?: Omit<
+    UseMutationOptions<CommentDto, Error, CreateCommentDto>,
+    "mutationFn"
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => {
+      const response = await CreateComment(payload);
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate this dream's comments so the new comment/reply appears
+      queryClient.invalidateQueries({
+        queryKey: ["comments", variables.dreamId],
+      });
     },
     ...options,
   });

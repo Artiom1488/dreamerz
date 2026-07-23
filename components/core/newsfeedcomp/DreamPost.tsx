@@ -14,21 +14,16 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import {
-  Heart,
-  MessageCircle,
-  Share2,
-  Bookmark,
-  Send,
-  Smile,
-} from "lucide-react";
+import { Heart, MessageCircle, Share2, Bookmark } from "lucide-react";
 import type { NewsFeedItemDto } from "@/api/request-types";
 import { useUserStore } from "@/stores/user-store";
 import { PricingModal } from "@/components/reusable/PricingModal";
 import { HoverUser } from "@/components/reusable/HoverUser";
 import { resolveAssetUrl } from "./postUtils";
 import { useTimeAgo } from "@/hooks/useTimeAgo";
+import Comments from "@/components/core/Comments";
+import { NewsFeedModal } from "./NewsFeedModal";
+import { useLikeDream, useDreamComments } from "@/api/queries";
 
 interface DreamPostProps {
   post: NewsFeedItemDto;
@@ -38,15 +33,26 @@ export function DreamPost({ post }: DreamPostProps) {
   const router = useRouter();
   const currentUser = useUserStore((state) => state.user);
   const [saved, setSaved] = useState(post.isSaved);
-  const [comment, setComment] = useState("");
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showNewsFeedModal, setShowNewsFeedModal] = useState(false);
+  const likeDreamMutation = useLikeDream();
 
   const dream = post.newsFeedDream;
   const user = post.user;
   const contributor = post.contributor;
 
+  const { data: commentsData } = useDreamComments(dream?.id ?? "", {
+    order: "DESC",
+    page: 1,
+    take: 1,
+  });
+  const commentCount = commentsData?.meta.commentCount || 0;
+
   const [liked, setLiked] = useState(
     dream?.likedDreamsByUsers?.some((u) => u.id === currentUser?.id) || false,
+  );
+  const [likesCount, setLikesCount] = useState(
+    dream?.likedDreamsByUsers?.length || 0,
   );
 
   const contributorTimeAgo = useTimeAgo(post.createdAt);
@@ -57,8 +63,8 @@ export function DreamPost({ post }: DreamPostProps) {
   const progress = dream.progress || 0;
   const fulfilled = dream.amountReceived || 0;
   const received = dream.donations || 0;
-  const likes = dream.likedDreamsByUsers?.length || 0;
-  const comments = 0; // API doesn't provide comment count
+  const likes = likesCount;
+  const comments = commentCount;
   const sent = 0; // API doesn't provide sent count
   const savedCount = dream.savedCount || 0;
 
@@ -67,19 +73,22 @@ export function DreamPost({ post }: DreamPostProps) {
   };
 
   const handleLike = () => {
-    setLiked(!liked);
+    if (dream?.id) {
+      likeDreamMutation.mutate(dream.id, {
+        onSuccess: (updatedDream) => {
+          const isLiked =
+            updatedDream.likedDreamsByUsers?.some(
+              (u: any) => u.id === currentUser?.id,
+            ) || false;
+          setLiked(isLiked);
+          setLikesCount(updatedDream.likedDreamsByUsers?.length || 0);
+        },
+      });
+    }
   };
 
   const handleSave = () => {
     setSaved(!saved);
-  };
-
-  const handleComment = () => {
-    if (comment.trim()) {
-      // TODO: Implement comment submission
-      console.log("Submitting comment:", comment);
-      setComment("");
-    }
   };
 
   const handleShare = () => {
@@ -184,7 +193,10 @@ export function DreamPost({ post }: DreamPostProps) {
         {/* Image Carousel */}
         {dream.images && dream.images.length > 0 && (
           <div className="p-4">
-            <Carousel className="w-full">
+            <Carousel
+              className="w-full cursor-pointer"
+              onClick={() => setShowNewsFeedModal(true)}
+            >
               <CarouselContent>
                 {dream.images.map((image) => (
                   <CarouselItem key={image.id}>
@@ -202,8 +214,14 @@ export function DreamPost({ post }: DreamPostProps) {
               </CarouselContent>
               {dream.images.length > 1 && (
                 <>
-                  <CarouselPrevious className="left-2" />
-                  <CarouselNext className="right-2" />
+                  <CarouselPrevious
+                    className="left-2"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <CarouselNext
+                    className="right-2"
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 </>
               )}
             </Carousel>
@@ -237,7 +255,12 @@ export function DreamPost({ post }: DreamPostProps) {
                 <Heart className={`h-5 w-5 ${liked ? "fill-current" : ""}`} />
                 <span>{likes}</span>
               </Button>
-              <Button variant="ghost" size="sm" className="gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowNewsFeedModal(true)}
+              >
                 <MessageCircle className="h-5 w-5" />
                 <span>{comments}</span>
               </Button>
@@ -257,42 +280,21 @@ export function DreamPost({ post }: DreamPostProps) {
             </Button>
           </div>
 
-          {/* Comment Section */}
-          <div className="flex items-center gap-2 pt-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={resolveAssetUrl(currentUser?.mainImageUrl) || undefined}
-              />
-              <AvatarFallback>
-                {currentUser?.firstName?.[0]}
-                {currentUser?.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 relative">
-              <Input
-                placeholder="Leave a comment.."
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleComment()}
-                className="pr-20"
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                  <Smile className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0"
-                  onClick={handleComment}
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+          {/* Comments Section */}
+          <Comments
+            dreamId={dream.id}
+            currentUserAvatarUrl={resolveAssetUrl(currentUser?.mainImageUrl)}
+            compact
+            onOpenModal={() => setShowNewsFeedModal(true)}
+          />
         </div>
       </Card>
+
+      <NewsFeedModal
+        post={post}
+        open={showNewsFeedModal}
+        onOpenChange={setShowNewsFeedModal}
+      />
 
       <PricingModal
         open={showPricingModal}

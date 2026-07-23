@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Bookmark, Heart, Pencil, Send, Share2, Smile } from "lucide-react";
+import { Bookmark, Heart, Pencil, Send, Share2 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,15 @@ import {
 } from "@/components/reusable/PhotoCarousel";
 
 import { cn } from "@/lib/utils";
-import { useUploadDreamImages, useDeleteDreamImage } from "@/api/queries";
+import {
+  useUploadDreamImages,
+  useDeleteDreamImage,
+  useLikeDream,
+} from "@/api/queries";
 import { useUserStore } from "@/stores/user-store";
 
 import type { DreamDto } from "@/api/request-types";
+import Comments from "@/components/core/Comments";
 
 interface HisDreamProps {
   dream: DreamDto;
@@ -30,7 +35,6 @@ interface HisDreamProps {
   onToggleSave?: () => void;
   onShare?: () => void;
   onSend?: () => void;
-  onSubmitComment?: (message: string) => void;
   onRefresh?: () => void;
 }
 
@@ -41,19 +45,17 @@ export default function HisDream({
   onEditPhotos,
   onAddPhoto,
   onEditDetails,
-  onToggleLike,
   onToggleSave,
   onShare,
   onSend,
-  onSubmitComment,
   onRefresh,
 }: HisDreamProps) {
-  const [comment, setComment] = useState("");
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const currentUser = useUserStore((state) => state.user);
 
   const uploadDreamImagesMutation = useUploadDreamImages();
   const deleteDreamImageMutation = useDeleteDreamImage();
+  const likeDreamMutation = useLikeDream();
 
   const images = dream.images ?? [];
   const likesCount = dream.likedDreamsByUsers?.length ?? 0;
@@ -68,13 +70,6 @@ export default function HisDream({
     [dream.likedDreamsByUsers, currentUser?.id],
   );
   const isSaved = dream.isSaved || false;
-
-  const submitComment = () => {
-    const trimmed = comment.trim();
-    if (!trimmed) return;
-    onSubmitComment?.(trimmed);
-    setComment("");
-  };
 
   const handleUploadPhotos = async (files: File[]) => {
     try {
@@ -102,6 +97,12 @@ export default function HisDream({
       // this resolves - no need to duplicate it here.
     } catch (error) {
       console.error("Error deleting dream photo:", error);
+    }
+  };
+
+  const handleLike = () => {
+    if (dream.id) {
+      likeDreamMutation.mutate(dream.id);
     }
   };
 
@@ -184,7 +185,8 @@ export default function HisDream({
                 variant="ghost"
                 size="sm"
                 className={`gap-2 ${isLiked ? "text-red-500" : ""}`}
-                onClick={onToggleLike}
+                onClick={handleLike}
+                disabled={likeDreamMutation.isPending}
               >
                 <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
                 <span>{likesCount}</span>
@@ -224,51 +226,10 @@ export default function HisDream({
       </Card>
 
       {/* Comments */}
-      <Card className="border-none shadow-sm">
-        <CardHeader className="pb-3">
-          <h2 className="text-base font-semibold">Comments</h2>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={currentUserAvatarUrl ?? undefined} />
-              <AvatarFallback>
-                {dream.user?.firstName?.[0]?.toUpperCase() ?? "U"}
-              </AvatarFallback>
-            </Avatar>
-
-            <div className="relative flex-1">
-              <Input
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") submitComment();
-                }}
-                placeholder="Leave a comment.."
-                className="h-10 rounded-full bg-muted pr-16"
-              />
-              <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
-                <button
-                  type="button"
-                  aria-label="Add emoji"
-                  className="text-muted-foreground transition hover:text-foreground"
-                >
-                  <Smile className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={submitComment}
-                  aria-label="Post comment"
-                  className="text-muted-foreground transition hover:text-foreground"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <Comments
+        dreamId={dream.id}
+        currentUserAvatarUrl={currentUserAvatarUrl}
+      />
     </div>
   );
 }

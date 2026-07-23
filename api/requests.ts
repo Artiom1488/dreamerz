@@ -19,6 +19,10 @@ import {
   SearchUsersParams,
   GetMyActivityParams,
   GetUserActivityParams,
+  CommentsPaginatedResponse,
+  GetDreamCommentsParams,
+  CreateCommentDto,
+  CommentDto,
 } from "./request-types";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -43,6 +47,14 @@ export const updateDream = (
   dreamId: string,
   payload: Partial<UpdateDreamDto>,
 ) => api.patch<DreamDto>(`/api/v1/dreams/${dreamId}`, payload);
+
+// Toggles the current user's like on a dream. Returns the full updated
+// dream, including the refreshed likedDreamsByUsers list.
+export const likeDream = (dreamId: string) =>
+  api.patch<DreamDto>(`/api/v1/dreams/${dreamId}/like`);
+
+export const CreateComment = (payload: CreateCommentDto) =>
+  api.post<CommentDto>("/api/v1/dreams/comments", payload);
 
 // Real file uploads
 export const UploadImage = ({ dreamId, image }: UploadImagePayload) => {
@@ -113,6 +125,9 @@ export const getAllCharities = async () => {
   return await api.get<PaginatedResponse<CharityDto>>("/api/v1/charities");
 };
 
+export const getCharityById = (charityId: string) =>
+  api.get<CharityDto>(`/api/v1/charities/${charityId}`);
+
 export const getNewsFeeds = (params?: GetNewsFeedsParams) =>
   api.get<PaginatedResponse<NewsFeedItemDto>>("/api/v1/news-feeds", {
     params,
@@ -123,6 +138,14 @@ export const getUserDreamsByUserId = (
   params?: GetUserDreamsByUserIdParams,
 ) =>
   api.get<PaginatedResponse<DreamDto>>(`/api/v1/dreams/users/${userId}`, {
+    params,
+  });
+
+export const getDreamComments = (
+  dreamId: string,
+  params?: GetDreamCommentsParams,
+) =>
+  api.get<CommentsPaginatedResponse>(`/api/v1/dreams/${dreamId}/comments`, {
     params,
   });
 
