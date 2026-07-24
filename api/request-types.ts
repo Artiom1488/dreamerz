@@ -172,6 +172,48 @@ export interface GetUserDreamsByUserIdParams {
   dreamStatus?: DreamDto["status"];
 }
 
+// GET /api/v1/dreams - all dreams across all users (the dashboard feed).
+// Pass isPopular: true to get only popular dreams instead of the full list.
+export interface GetAllDreamsParams {
+  order?: "ASC" | "DESC";
+  page?: number;
+  take?: number;
+  isPopular?: boolean;
+}
+
+// LastDonationDreamDto - the dream shape embedded in each entry of
+// GET /api/v1/donations/last. Slimmer than DreamDto: no `isSaved`,
+// `likedDreamsByUsers`, or `donations` fields.
+export interface LastDonationDreamDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  title: string;
+  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+  amount: number;
+  savedCount: number | null;
+  sharedCount: number | null;
+  amountReceived: number;
+  progress: number;
+  images: DreamImageDto[];
+  user: SummaryUserDto;
+  deletedAt: string | null;
+}
+
+// DonationDto - a single donation as returned by GET /api/v1/donations/last
+// (last 25 donations across all dreams, newest first). Note: `userId` is
+// the donor, but only their id is included here — no embedded donor
+// summary — so fetch via getUserById(userId) if you need their name/avatar.
+export interface DonationDto {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  dreamId: string;
+  userId: string;
+  amount: number;
+  dream: LastDonationDreamDto;
+}
+
 // CharityImageDto - similar to DreamImageDto but for charity images
 export interface CharityImageDto {
   id: string;

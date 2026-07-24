@@ -11,6 +11,7 @@ import {
   getUserById,
   getUserDreams,
   getUserDreamsByUserId,
+  getAllDreams,
   updateUser,
   CreateDream,
   updateDream,
@@ -30,6 +31,7 @@ import {
   getUserActivityByUserId,
   getDreamComments,
   CreateComment,
+  getLastDonations,
 } from "./requests";
 import type {
   User,
@@ -40,6 +42,7 @@ import type {
   UpdateDreamDto,
   GetUserDreamsParams,
   GetUserDreamsByUserIdParams,
+  GetAllDreamsParams,
   UploadImagePayload,
   UploadImagesPayload,
   UploadUserImagesPayload,
@@ -133,6 +136,19 @@ export const useUserDreamsByUserId = (
   });
 };
 
+// All dreams across all users, for the dashboard page. Pass
+// { isPopular: true } to fetch only popular dreams instead of the full list.
+export const useAllDreams = (params?: GetAllDreamsParams) => {
+  return useQuery({
+    queryKey: ["dreams", "all", params],
+    queryFn: async () => {
+      const response = await getAllDreams(params);
+      return response.data;
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes for dreams
+  });
+};
+
 export const useDreamComments = (
   dreamId: string,
   params?: GetDreamCommentsParams,
@@ -210,6 +226,20 @@ export const useNewsFeeds = (params?: Omit<GetNewsFeedsParams, "page">) => {
     getNextPageParam: (lastPage) =>
       lastPage.meta.hasNextPage ? lastPage.meta.page + 1 : undefined,
     staleTime: 60 * 1000, // 1 minute — feed content changes often
+  });
+};
+
+// Last 25 donations across all dreams, newest first — e.g. for a "recent
+// donors" widget. Note: each entry only has the donor's `userId`, not a
+// full user summary, so pair with useUserById if you need their name/avatar.
+export const useLastDonations = () => {
+  return useQuery({
+    queryKey: ["donations", "last"],
+    queryFn: async () => {
+      const response = await getLastDonations();
+      return response.data;
+    },
+    staleTime: 60 * 1000, // 1 minute — recent donations change often
   });
 };
 

@@ -13,6 +13,7 @@ import {
   PaginatedResponse,
   GetUserDreamsParams,
   GetUserDreamsByUserIdParams,
+  GetAllDreamsParams,
   CharityDto,
   NewsFeedItemDto,
   GetNewsFeedsParams,
@@ -23,6 +24,7 @@ import {
   GetDreamCommentsParams,
   CreateCommentDto,
   CommentDto,
+  DonationDto,
 } from "./request-types";
 import { useAuthStore } from "@/stores/auth-store";
 
@@ -121,6 +123,11 @@ export const getLatestDream = async (): Promise<DreamDto | null> => {
   return data.results[0] ?? null;
 };
 
+// All dreams across all users, paginated (dashboard). Pass isPopular: true
+// to get only popular dreams instead of the full list.
+export const getAllDreams = (params?: GetAllDreamsParams) =>
+  api.get<PaginatedResponse<DreamDto>>("/api/v1/dreams", { params });
+
 export const getAllCharities = async () => {
   return await api.get<PaginatedResponse<CharityDto>>("/api/v1/charities");
 };
@@ -148,6 +155,10 @@ export const getDreamComments = (
   api.get<CommentsPaginatedResponse>(`/api/v1/dreams/${dreamId}/comments`, {
     params,
   });
+
+// Last 25 donations across all dreams, newest first — e.g. for a "recent
+// donors" widget. Not paginated, no params.
+export const getLastDonations = () => api.get<DonationDto[]>("/api/v1/donations/last");
 
 export const getMyActivity = (params?: GetMyActivityParams) =>
   api.get<PaginatedResponse<any>>("/api/v1/me/activity", { params });
